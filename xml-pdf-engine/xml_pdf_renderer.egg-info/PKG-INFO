@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: xml_pdf_renderer
+Version: 0.1
+Requires-Dist: click
+Requires-Dist: lxml
+Requires-Dist: jinja2
+Requires-Dist: pdfkit
+Requires-Dist: pydantic
+Dynamic: requires-dist

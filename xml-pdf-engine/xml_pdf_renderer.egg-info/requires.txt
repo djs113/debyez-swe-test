@@ -1,0 +1,5 @@
+click
+lxml
+jinja2
+pdfkit
+pydantic

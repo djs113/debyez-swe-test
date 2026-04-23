@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<his:PatientRecord xmlns:his="urn:his:patient:v2"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="urn:his:patient:v2 patient-registration.xsd"
+                   mrn="MRN-00134872"
+                   status="ACTIVE"
+                   version="3"
+                   >
+
+    <his:demographics>
+        <his:name nameUse="LEGAL">
+            <his:prefix>Mr.</his:prefix>
+            <his:firstName>Jonathan</his:firstName>
+            <his:middleName>Arthur</his:middleName>
+            <his:lastName>Pemberton</his:lastName>
+            <his:suffix>Jr.</his:suffix>
+            <his:preferredName>Jon</his:preferredName>
+        </his:name>
+        <his:dateOfBirth>1978-03-15</his:dateOfBirth>
+        <his:gender>M</his:gender>
+        <his:bloodGroup>A+</his:bloodGroup>
+        <his:maritalStatus>MARRIED</his:maritalStatus>
+        <his:nationality>US</his:nationality>
+        <his:ethnicity>Non-Hispanic White</his:ethnicity>
+        <his:primaryLanguage>English</his:primaryLanguage>
+        <his:interpreterRequired>false</his:interpreterRequired>
+        <his:religion>Protestant</his:religion>
+        <his:occupation>Software Engineer</his:occupation>
+    </his:demographics>
+
+    <his:contactInfo>
+        <his:addresses>
+            <his:address preferred="true">
+                <his:streetLine1>4821 Maple Ridge Drive</his:streetLine1>
+                <his:streetLine2>Apt 3B</his:streetLine2>
+                <his:city>Springfield</his:city>
+                <his:stateProvince>IL</his:stateProvince>
+                <his:postalCode>62704</his:postalCode>
+                <his:countryCode>US</his:countryCode>
+                <his:addressType>HOME</his:addressType>
+                <his:effectiveFrom>2019-06-01</his:effectiveFrom>
+            </his:address>
+            <his:address preferred="false">
+                <his:streetLine1>1200 Corporate Blvd</his:streetLine1>
+                <his:city>Springfield</his:city>
+                <his:stateProvince>IL</his:stateProvince>
+                <his:postalCode>62702</his:postalCode>
+                <his:countryCode>US</his:countryCode>
+                <his:addressType>WORK</his:addressType>
+            </his:address>
+        </his:addresses>
+        <his:contactMethods>
+            <his:contactMethod preferred="true"
+                               active="true"
+                               >
+                <his:method>MOBILE</his:method>
+                <his:value>+1-217-555-0182</his:value>
+                <his:note>Primary contact number</his:note>
+            </his:contactMethod>
+            <his:contactMethod preferred="false"
+                               active="true"
+                               >
+                <his:method>HOME</his:method>
+                <his:value>+1-217-555-0194</his:value>
+            </his:contactMethod>
+            <his:contactMethod preferred="false"
+                               active="true"
+                               >
+                <his:method>EMAIL</his:method>
+                <his:value>jon.pemberton@example.com</his:value>
+            </his:contactMethod>
+            <his:contactMethod preferred="false"
+                               active="false"
+                               >
+                <his:method>WORK</his:method>
+                <his:value>+1-217-555-0200</his:value>
+                <his:note>Do not call during core hours 9am-5pm</his:note>
+            </his:contactMethod>
+        </his:contactMethods>
+    </his:contactInfo>
+
+    <his:emergencyContacts>
+        <his:emergencyContact priority="1"
+                              legalGuardian="false"
+                              >
+            <his:name nameUse="LEGAL">
+                <his:firstName>Margaret</his:firstName>
+                <his:lastName>Pemberton</his:lastName>
+            </his:name>
+            <his:relationship>SPOUSE</his:relationship>
+            <his:contactInfo>
+                <his:addresses>
+                    <his:address preferred="true">
+                        <his:streetLine1>4821 Maple Ridge Drive</his:streetLine1>
+                        <his:streetLine2>Apt 3B</his:streetLine2>
+                        <his:city>Springfield</his:city>
+                        <his:stateProvince>IL</his:stateProvince>
+                        <his:postalCode>62704</his:postalCode>
+                        <his:countryCode>US</his:countryCode>
+                    </his:address>
+                </his:addresses>
+                <his:contactMethods>
+                    <his:contactMethod preferred="true"
+                                       active="true"
+                                       >
+                        <his:method>MOBILE</his:method>
+                        <his:value>+1-217-555-0210</his:value>
+                    </his:contactMethod>
+                </his:contactMethods>
+            </his:contactInfo>
+            <his:note>Available at any time</his:note>
+        </his:emergencyContact>
+        <his:emergencyContact priority="2"
+                              legalGuardian="false"
+                              >
+            <his:name nameUse="LEGAL">
+                <his:firstName>Gerald</his:firstName>
+                <his:middleName>Ray</his:middleName>
+                <his:lastName>Pemberton</his:lastName>
+            </his:name>
+            <his:relationship>PARENT</his:relationship>
+            <his:contactInfo>
+                <his:addresses>
+                    <his:address preferred="true">
+                        <his:streetLine1>209 Elm Street</his:streetLine1>
+                        <his:city>Decatur</his:city>
+                        <his:stateProvince>IL</his:stateProvince>
+                        <his:postalCode>62521</his:postalCode>
+                        <his:countryCode>US</his:countryCode>
+                    </his:address>
+                </his:addresses>
+                <his:contactMethods>
+                    <his:contactMethod preferred="true"
+                                       active="true"
+                                       >
+                        <his:method>HOME</his:method>
+                        <his:value>+1-217-555-0320</his:value>
+                    </his:contactMethod>
+                </his:contactMethods>
+            </his:contactInfo>
+        </his:emergencyContact>
+    </his:emergencyContacts>
+
+    <his:insurancePlans>
+        <his:insurancePlan insuranceType="PRIMARY"
+                           active="true"
+                           >
+            <his:insurerName>BlueCross BlueShield of Illinois</his:insurerName>
+            <his:planName>PPO Gold 1500</his:planName>
+            <his:policyNumber>BCBSIL-87234611</his:policyNumber>
+            <his:groupNumber>GRP-20041</his:groupNumber>
+            <his:memberId>XWY9922341</his:memberId>
+            <his:subscriberName nameUse="LEGAL">
+                <his:firstName>Jonathan</his:firstName>
+                <his:lastName>Pemberton</his:lastName>
+            </his:subscriberName>
+            <his:subscriberDOB>1978-03-15</his:subscriberDOB>
+            <his:relationshipToPatient>SPOUSE</his:relationshipToPatient>
+            <his:effectiveDate>2023-01-01</his:effectiveDate>
+            <his:terminationDate>2023-12-31</his:terminationDate>
+            <his:copayAmount>30.00</his:copayAmount>
+            <his:deductibleAmount>1500.00</his:deductibleAmount>
+            <his:verificationStatus>VERIFIED</his:verificationStatus>
+            <his:verifiedDate>2023-01-05</his:verifiedDate>
+            <his:preAuthRequired>false</his:preAuthRequired>
+            <his:notes>In-network specialists only for specialist referrals</his:notes>
+        </his:insurancePlan>
+        <his:insurancePlan insuranceType="SECONDARY"
+                           active="true"
+                           >
+            <his:insurerName>Aetna</his:insurerName>
+            <his:planName>HMO Select</his:planName>
+            <his:policyNumber>AETNA-52109834</his:policyNumber>
+            <his:memberId>AET4471228</his:memberId>
+            <his:effectiveDate>2023-01-01</his:effectiveDate>
+            <his:copayAmount>15.00</his:copayAmount>
+            <his:verificationStatus>PENDING</his:verificationStatus>
+        </his:insurancePlan>
+    </his:insurancePlans>
+
+    <his:allergies>
+        <his:allergy status="ACTIVE"
+                     recorded="2018-07-12T10:30:00"
+                     >
+            <his:allergen>Penicillin</his:allergen>
+            <his:allergenType>DRUG</his:allergenType>
+            <his:severity>SEVERE</his:severity>
+            <his:reaction>Anaphylaxis — hives, throat swelling, drop in BP</his:reaction>
+            <his:onsetDate>2018-07-10</his:onsetDate>
+            <his:verifiedBy>Dr. Susan Tran</his:verifiedBy>
+        </his:allergy>
+        <his:allergy status="ACTIVE"
+                     recorded="2020-03-01T09:00:00"
+                     >
+            <his:allergen>Ibuprofen</his:allergen>
+            <his:allergenType>DRUG</his:allergenType>
+            <his:severity>MODERATE</his:severity>
+            <his:reaction>GI distress, elevated creatinine</his:reaction>
+            <his:onsetDate>2020-02-28</his:onsetDate>
+        </his:allergy>
+        <his:allergy status="INACTIVE"
+                     recorded="2005-05-20T00:00:00"
+                     >
+            <his:allergen>Peanuts</his:allergen>
+            <his:allergenType>FOOD</his:allergenType>
+            <his:severity>MILD</his:severity>
+            <his:reaction>Mild itching</his:reaction>
+        </his:allergy>
+    </his:allergies>
+
+    <his:registrationMetadata>
+        <his:registrationDate>2015-04-22T08:45:00</his:registrationDate>
+        <his:registrationFacility>Springfield General Hospital — Main Campus</his:registrationFacility>
+        <his:registeredBy>admin.clerk.rodriguez</his:registeredBy>
+        <his:lastUpdated>2023-09-14T11:20:00</his:lastUpdated>
+        <his:lastUpdatedBy>nurse.chen</his:lastUpdatedBy>
+        <his:sourceSystem>EPIC-HIS-V8</his:sourceSystem>
+        <his:externalIds>
+            <his:externalId>
+                <his:idType>SSN_LAST4</his:idType>
+                <his:idValue>4872</his:idValue>
+                <his:issuer>US-SSA</his:issuer>
+            </his:externalId>
+            <his:externalId>
+                <his:idType>DRIVERS_LICENSE</his:idType>
+                <his:idValue>IL-D842-7193-2210</his:idValue>
+                <his:issuer>IL-DMV</his:issuer>
+            </his:externalId>
+        </his:externalIds>
+    </his:registrationMetadata>
+
+</his:PatientRecord>

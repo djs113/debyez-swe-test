@@ -1,0 +1,2 @@
+[console_scripts]
+render = src.cli:render

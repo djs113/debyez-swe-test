@@ -1,0 +1,17 @@
+README.md
+setup.py
+src/__init__.py
+src/cli.py
+src/models/__init__.py
+src/models/patient.py
+src/parser/__init__.py
+src/parser/patient_parser.py
+src/renderer/__init__.py
+src/renderer/pdf_builder.py
+tests/test_parser.py
+xml_pdf_renderer.egg-info/PKG-INFO
+xml_pdf_renderer.egg-info/SOURCES.txt
+xml_pdf_renderer.egg-info/dependency_links.txt
+xml_pdf_renderer.egg-info/entry_points.txt
+xml_pdf_renderer.egg-info/requires.txt
+xml_pdf_renderer.egg-info/top_level.txt
