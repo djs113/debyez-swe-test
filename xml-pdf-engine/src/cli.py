@@ -16,7 +16,6 @@ def render(input, output):
 
         click.echo(f"Processing {input}...")
         
-        # This is where the magic happens
         generate_pdf(input, output)
         
         click.secho(f"Successfully generated: {output}", fg='green')
