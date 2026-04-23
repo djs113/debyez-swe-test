@@ -1,5 +1,5 @@
 from lxml import etree
-from models.patient import *
+from src.models.patient import *
 
 def parse_patient_xml(xml_path):
     ns = {'his': 'urn:his:patient:v2'}

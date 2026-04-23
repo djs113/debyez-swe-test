@@ -1,7 +1,7 @@
 import pdfkit
 import os
 from jinja2 import Environment, FileSystemLoader
-from parser.patient_parser import parse_patient_xml
+from src.parser.patient_parser import parse_patient_xml
 
 def generate_pdf(xml_path, output_path):
     # 1. Parse Data

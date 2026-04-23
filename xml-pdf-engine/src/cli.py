@@ -1,7 +1,7 @@
 import os
 
 import click
-from renderer.pdf_builder import generate_pdf  # You will create this next
+from src.renderer.pdf_builder import generate_pdf  # You will create this next
 
 @click.command()
 @click.option('--input', '-i', required=True, type=click.Path(exists=True), help='Path to input XML file')
@@ -13,7 +13,7 @@ def render(input, output):
         output_dir = os.path.dirname(output)
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
-            
+
         click.echo(f"Processing {input}...")
         
         # This is where the magic happens
