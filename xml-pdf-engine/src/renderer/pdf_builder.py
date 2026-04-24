@@ -14,7 +14,6 @@ def generate_pdf(xml_path, output_path):
     html_content = template.render(p=patient)
     
     # 3. Configure PDFKit
-    # Point to your installation path if it's not in your Windows PATH
     config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
     
     # 4. Generate

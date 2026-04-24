@@ -32,10 +32,8 @@ def parse_patient_xml(xml_path):
     )
 
     # 2. Contacts (Main Patient - SCOPED)
-    # Get the patient's contactInfo block specifically
     contact_info_node = root.xpath('his:contactInfo', namespaces=ns)[0]
     
-    # Use the node variable, not the 'root' variable, and use single slash '/'
     addr_nodes = contact_info_node.xpath('his:addresses/his:address', namespaces=ns)
     
     addresses = [Address(
@@ -48,7 +46,6 @@ def parse_patient_xml(xml_path):
         preferred=a.get('preferred') == 'true'
     ) for a in addr_nodes]
 
-    # Do the same for methods (use contact_info_node, NOT root)
     methods = [ContactMethod(
         method=get_text(cm, 'his:method') or "",
         value=get_text(cm, 'his:value') or "",

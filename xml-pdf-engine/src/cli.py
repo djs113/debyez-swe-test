@@ -1,7 +1,7 @@
 import os
 
 import click
-from src.renderer.pdf_builder import generate_pdf  # You will create this next
+from src.renderer.pdf_builder import generate_pdf
 
 @click.command()
 @click.option('--input', '-i', required=True, type=click.Path(exists=True), help='Path to input XML file')

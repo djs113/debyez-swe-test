@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import date
 
 class Name(BaseModel):
     prefix: Optional[str] = None
@@ -30,7 +29,7 @@ class ContactMethod(BaseModel):
 
 class Demographic(BaseModel):
     name: Name
-    dob: str # Kept as str to avoid date parsing errors during Level 1
+    dob: str 
     gender: str
     blood_group: Optional[str] = None
     marital_status: Optional[str] = None
