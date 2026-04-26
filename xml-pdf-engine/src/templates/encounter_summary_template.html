@@ -20,31 +20,30 @@
     <div class="header">
         <div>
             <h1 style="margin: 0;">Clinical Encounter Summary</h1>
-            <p style="margin: 5px 0;"><strong>Encounter ID:</strong> {{ p.encounter_id }}</p>
+            <p style="margin: 5px 0;"><strong>Encounter ID:</strong> {{ p.encounter_id|safe_str }}</p>
         </div>
         <div style="text-align: right;">
-            <p style="margin: 0;"><strong>Patient MRN:</strong> {{ p.patient_mrn }}</p>
-            <p style="margin: 5px 0;"><span class="status-badge {% if p.status == 'IN_PROGRESS' %}status-in-progress{% elif p.status == 'DISCHARGED' %}status-discharged{% endif %}">{{ p.status }}</span></p>
+            <p style="margin: 0;"><strong>Patient MRN:</strong> {{ p.patient_mrn|safe_str }}</p>
+            <p style="margin: 5px 0;"><span class="status-badge {% if p.status == 'IN_PROGRESS' %}status-in-progress{% elif p.status == 'DISCHARGED' %}status-discharged{% endif %}">{{ p.status|safe_str('UNKNOWN') }}</span></p>
         </div>
     </div>
 
     <div class="grid">
         <div class="box">
             <h2>Encounter Details</h2>
-            <p><strong>Type:</strong> {{ p.encounter_type }}</p>
-            <p><strong>Chief Complaint:</strong> {{ p.chief_complaint }}</p>
-            <p><strong>Facility:</strong> {{ p.facility }}{% if p.department %}, {{ p.department }}{% endif %}</p>
-            <p><strong>Admission:</strong> {{ p.admission_date_time }}</p>
-            {% if p.discharge_date_time %}<p><strong>Discharged:</strong> {{ p.discharge_date_time }}</p>{% endif %}
+            <p><strong>Type:</strong> {{ p.encounter_type|safe_str }}</p>
+            <p><strong>Chief Complaint:</strong> {{ p.chief_complaint|truncate_text(300) }}</p>
+            <p><strong>Facility:</strong> {{ p.facility|safe_str }}</p>
+            <p><strong>Admission:</strong> {{ p.admission_date_time|safe_str }}</p>
         </div>
         <div class="box">
             <h2>Primary Providers</h2>
-            {% if p.providers %}
+            {% if p.providers and p.providers|length > 0 %}
                 {% for provider in p.providers %}
-                <p><strong>{{ provider.role }}:</strong> {{ provider.provider_name }}{% if provider.specialty %} ({{ provider.specialty }}){% endif %}</p>
+                <p><strong>{{ provider.role|safe_str }}</strong> {{ provider.provider_name|safe_str }}{% if provider.specialty %} ({{ provider.specialty|safe_str }}){% endif %}</p>
                 {% endfor %}
             {% else %}
-            <p>No providers recorded</p>
+            <p><em>No providers recorded</em></p>
             {% endif %}
         </div>
     </div>
@@ -61,17 +60,17 @@
         </tr>
         {% for vital in p.vitals_history[0] %}
         <tr>
-            <td>{{ vital.code }}</td>
-            <td>{{ vital.value }}</td>
-            <td>{{ vital.unit }}</td>
+            <td>{{ vital.code|safe_str }}</td>
+            <td>{{ vital.value|safe_str }}</td>
+            <td>{{ vital.unit|safe_str }}</td>
             <td>{% if vital.abnormal %}<span style="color: #c53030; font-weight: bold;">ABNORMAL</span>{% else %}Normal{% endif %}</td>
-            <td>{{ vital.recorded_at }}</td>
+            <td>{{ vital.recorded_at|safe_str }}</td>
         </tr>
         {% endfor %}
     </table>
     {% endif %}
 
-    {% if p.diagnoses %}
+    {% if p.diagnoses and p.diagnoses|length > 0 %}
     <h2>Diagnoses</h2>
     <table class="summary-table">
         <tr>
@@ -82,16 +81,16 @@
         </tr>
         {% for diag in p.diagnoses %}
         <tr>
-            <td>{{ diag.icd10_code.code }}</td>
-            <td>{{ diag.icd10_code.description }}</td>
-            <td>{{ diag.confirmation_status }}</td>
+            <td>{{ diag.icd10_code.code|safe_str }}</td>
+            <td>{{ diag.icd10_code.description|safe_str }}</td>
+            <td>{{ diag.confirmation_status|safe_str }}</td>
             <td>{% if diag.primary %}Yes{% else %}No{% endif %}</td>
         </tr>
         {% endfor %}
     </table>
     {% endif %}
 
-    {% if p.medication_orders %}
+    {% if p.medication_orders and p.medication_orders|length > 0 %}
     <h2>Medication Orders</h2>
     <table class="summary-table">
         <tr>
@@ -103,17 +102,17 @@
         </tr>
         {% for med in p.medication_orders %}
         <tr>
-            <td>{{ med.medication_name }}</td>
-            <td>{{ med.dosage }}</td>
-            <td>{{ med.route }}</td>
-            <td>{{ med.frequency }}</td>
-            <td>{{ med.status }}</td>
+            <td>{{ med.medication_name|safe_str }}</td>
+            <td>{{ med.dosage|safe_str }}</td>
+            <td>{{ med.route|safe_str }}</td>
+            <td>{{ med.frequency|safe_str }}</td>
+            <td>{{ med.status|safe_str }}</td>
         </tr>
         {% endfor %}
     </table>
     {% endif %}
 
-    {% if p.procedures %}
+    {% if p.procedures and p.procedures|length > 0 %}
     <h2>Procedures</h2>
     <table class="summary-table">
         <tr>
@@ -125,17 +124,17 @@
         </tr>
         {% for proc in p.procedures %}
         <tr>
-            <td>{{ proc.procedure_name }}</td>
-            <td>{{ proc.cpt_code }}</td>
-            <td>{{ proc.performed_by }}</td>
-            <td>{{ proc.performed_at }}</td>
-            <td>{{ proc.status }}</td>
+            <td>{{ proc.procedure_name|safe_str }}</td>
+            <td>{{ proc.cpt_code|safe_str }}</td>
+            <td>{{ proc.performed_by|safe_str }}</td>
+            <td>{{ proc.performed_at|safe_str }}</td>
+            <td>{{ proc.status|safe_str }}</td>
         </tr>
         {% endfor %}
     </table>
     {% endif %}
 
-    {% if p.lab_orders %}
+    {% if p.lab_orders and p.lab_orders|length > 0 %}
     <h2>Lab Orders</h2>
     <table class="summary-table">
         <tr>
@@ -146,10 +145,10 @@
         </tr>
         {% for lab in p.lab_orders %}
         <tr>
-            <td>{{ lab.test_name }}</td>
-            <td>{{ lab.priority }}</td>
-            <td>{{ lab.status }}</td>
-            <td>{{ lab.ordered_at }}</td>
+            <td>{{ lab.test_name|safe_str }}</td>
+            <td>{{ lab.priority|safe_str }}</td>
+            <td>{{ lab.status|safe_str }}</td>
+            <td>{{ lab.ordered_at|safe_str }}</td>
         </tr>
         {% endfor %}
     </table>
@@ -158,10 +157,10 @@
     {% if p.discharge_info %}
     <div class="box">
         <h2>Discharge Information</h2>
-        <p><strong>Disposition:</strong> {{ p.discharge_info.disposition }}</p>
-        {% if p.discharge_info.discharge_condition %}<p><strong>Condition:</strong> {{ p.discharge_info.discharge_condition }}</p>{% endif %}
-        {% if p.discharge_info.follow_up_instructions %}<p><strong>Follow-up:</strong> {{ p.discharge_info.follow_up_instructions }}</p>{% endif %}
-        {% if p.discharge_info.referred_to %}<p><strong>Referred To:</strong> {{ p.discharge_info.referred_to }}</p>{% endif %}
+        <p><strong>Disposition:</strong> {{ p.discharge_info.disposition|safe_str }}</p>
+        {% if p.discharge_info.discharge_condition %}<p><strong>Condition:</strong> {{ p.discharge_info.discharge_condition|safe_str }}</p>{% endif %}
+        {% if p.discharge_info.follow_up_instructions %}<p><strong>Follow-up:</strong> {{ p.discharge_info.follow_up_instructions|truncate_text(300) }}</p>{% endif %}
+        {% if p.discharge_info.referred_to %}<p><strong>Referred To:</strong> {{ p.discharge_info.referred_to|safe_str }}</p>{% endif %}
     </div>
     {% endif %}
 </body>

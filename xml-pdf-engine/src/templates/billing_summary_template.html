@@ -23,45 +23,47 @@
     <div class="header">
         <div>
             <h1 style="margin: 0;">Medical Claim Summary</h1>
-            <p style="margin: 5px 0;"><strong>Claim ID:</strong> {{ p.claim_id }}</p>
+            <p style="margin: 5px 0;"><strong>Claim ID:</strong> {{ p.claim_id|safe_str }}</p>
         </div>
         <div style="text-align: right;">
-            <p style="margin: 0;"><strong>Patient MRN:</strong> {{ p.patient_mrn }}</p>
-            <p style="margin: 5px 0;"><span class="status-badge {% if p.status == 'DRAFT' %}status-draft{% elif p.status == 'SUBMITTED' %}status-submitted{% elif p.status == 'APPROVED' %}status-approved{% endif %}">{{ p.status }}</span></p>
+            <p style="margin: 0;"><strong>Patient MRN:</strong> {{ p.patient_mrn|safe_str }}</p>
+            <p style="margin: 5px 0;"><span class="status-badge {% if p.status == 'DRAFT' %}status-draft{% elif p.status == 'SUBMITTED' %}status-submitted{% elif p.status == 'APPROVED' %}status-approved{% endif %}">{{ p.status|safe_str('UNKNOWN') }}</span></p>
         </div>
     </div>
 
     <div class="grid">
         <div class="box">
             <h2>Claim Information</h2>
-            <p><strong>Type:</strong> {{ p.claim_type }}</p>
-            <p><strong>Encounter ID:</strong> {{ p.encounter_id }}</p>
-            <p><strong>Service Start:</strong> {{ p.service_start_date }}</p>
-            {% if p.service_end_date %}<p><strong>Service End:</strong> {{ p.service_end_date }}</p>{% endif %}
-            {% if p.submission_date %}<p><strong>Submitted:</strong> {{ p.submission_date }}</p>{% endif %}
+            <p><strong>Type:</strong> {{ p.claim_type|safe_str }}</p>
+            <p><strong>Encounter ID:</strong> {{ p.encounter_id|safe_str }}</p>
+            <p><strong>Service Start:</strong> {{ p.service_start_date|safe_str }}</p>
+            {% if p.service_end_date %}<p><strong>Service End:</strong> {{ p.service_end_date|safe_str }}</p>{% endif %}
+            {% if p.submission_date %}<p><strong>Submitted:</strong> {{ p.submission_date|safe_str }}</p>{% endif %}
         </div>
         <div class="box">
             <h2>Billing Provider</h2>
-            <p><strong>{{ p.billing_provider.provider_name }}</strong></p>
-            <p>NPI: {{ p.billing_provider.npi }}</p>
-            {% if p.billing_provider.specialty %}<p>Specialty: {{ p.billing_provider.specialty }}</p>{% endif %}
-            <p>{{ p.billing_provider.billing_address.line1 }}<br>
-               {{ p.billing_provider.billing_address.city }}, {{ p.billing_provider.billing_address.state }} {{ p.billing_provider.billing_address.zip }}</p>
+            <p><strong>{{ p.billing_provider.provider_name|safe_str }}</strong></p>
+            <p>NPI: {{ p.billing_provider.npi|safe_str }}</p>
+            {% if p.billing_provider.specialty %}<p>Specialty: {{ p.billing_provider.specialty|safe_str }}</p>{% endif %}
+            <p>{{ p.billing_provider.billing_address.line1|safe_str }}<br>
+               {{ p.billing_provider.billing_address.city|safe_str }}, {{ p.billing_provider.billing_address.state|safe_str }} {{ p.billing_provider.billing_address.zip|safe_str }}</p>
         </div>
     </div>
 
     <div class="box">
         <h2>Primary Payer</h2>
-        {% if p.payers %}
+        {% if p.payers and p.payers|length > 0 %}
         {% set primary_payer = p.payers[0] %}
-        <p><strong>{{ primary_payer.payer_name }}</strong></p>
-        <p>Plan: {{ primary_payer.plan_name }}</p>
-        <p>Member ID: {{ primary_payer.member_id }}</p>
-        {% if primary_payer.group_number %}<p>Group #: {{ primary_payer.group_number }}</p>{% endif %}
+        <p><strong>{{ primary_payer.payer_name|safe_str }}</strong></p>
+        <p>Plan: {{ primary_payer.plan_name|safe_str }}</p>
+        <p>Member ID: {{ primary_payer.member_id|safe_str }}</p>
+        {% if primary_payer.group_number %}<p>Group #: {{ primary_payer.group_number|safe_str }}</p>{% endif %}
+        {% else %}
+        <p><em>No payer information</em></p>
         {% endif %}
     </div>
 
-    {% if p.service_lines %}
+    {% if p.service_lines and p.service_lines|length > 0 %}
     <h2>Service Lines</h2>
     <table class="summary-table">
         <tr>
@@ -75,10 +77,10 @@
         {% for line in p.service_lines %}
         <tr>
             <td>#{{ line.line_number }}</td>
-            <td>{{ line.cpt_code }}</td>
-            <td>{{ line.service_date }}</td>
-            <td>{{ line.units }}</td>
-            <td class="amount">${{ "%.2f"|format(line.charged_amount.value) }}</td>
+            <td>{{ line.cpt_code|safe_str }}</td>
+            <td>{{ line.service_date|safe_str }}</td>
+            <td>{{ line.units|safe_str }}</td>
+            <td class="amount">{% if line.charged_amount %}${{ "%.2f"|format(line.charged_amount.value) }}{% else %}—{% endif %}</td>
             <td class="amount">{% if line.paid_amount %}${{ "%.2f"|format(line.paid_amount.value) }}{% else %}—{% endif %}</td>
         </tr>
         {% endfor %}
@@ -89,33 +91,33 @@
     <table class="summary-table totals-table">
         <tr>
             <td><strong>Total Charged:</strong></td>
-            <td class="amount"><strong>${{ "%.2f"|format(p.totals.total_charged.value) }}</strong></td>
+            <td class="amount"><strong>{% if p.totals and p.totals.total_charged %}${{ "%.2f"|format(p.totals.total_charged.value) }}{% else %}—{% endif %}</strong></td>
         </tr>
-        {% if p.totals.total_allowed %}
+        {% if p.totals and p.totals.total_allowed %}
         <tr>
             <td>Total Allowed:</td>
             <td class="amount">${{ "%.2f"|format(p.totals.total_allowed.value) }}</td>
         </tr>
         {% endif %}
-        {% if p.totals.total_insurance_paid %}
+        {% if p.totals and p.totals.total_insurance_paid %}
         <tr>
             <td>Insurance Paid:</td>
             <td class="amount">${{ "%.2f"|format(p.totals.total_insurance_paid.value) }}</td>
         </tr>
         {% endif %}
-        {% if p.totals.total_adjustments %}
+        {% if p.totals and p.totals.total_adjustments %}
         <tr>
             <td>Adjustments:</td>
             <td class="amount">${{ "%.2f"|format(p.totals.total_adjustments.value) }}</td>
         </tr>
         {% endif %}
-        {% if p.totals.total_patient_responsibility %}
+        {% if p.totals and p.totals.total_patient_responsibility %}
         <tr>
             <td>Patient Responsibility:</td>
             <td class="amount">${{ "%.2f"|format(p.totals.total_patient_responsibility.value) }}</td>
         </tr>
         {% endif %}
-        {% if p.totals.total_patient_paid %}
+        {% if p.totals and p.totals.total_patient_paid %}
         <tr>
             <td>Patient Paid:</td>
             <td class="amount">${{ "%.2f"|format(p.totals.total_patient_paid.value) }}</td>
@@ -123,11 +125,11 @@
         {% endif %}
         <tr>
             <td><strong>Balance Due:</strong></td>
-            <td class="amount"><strong>${{ "%.2f"|format(p.totals.balance_due.value) }}</strong></td>
+            <td class="amount"><strong>{% if p.totals and p.totals.balance_due %}${{ "%.2f"|format(p.totals.balance_due.value) }}{% else %}—{% endif %}</strong></td>
         </tr>
     </table>
 
-    {% if p.payments %}
+    {% if p.payments and p.payments|length > 0 %}
     <h2>Payments Received</h2>
     <table class="summary-table">
         <tr>
@@ -138,16 +140,16 @@
         </tr>
         {% for payment in p.payments %}
         <tr>
-            <td>{{ payment.payment_date }}</td>
-            <td>{{ payment.payer_name }}</td>
-            <td class="amount">${{ "%.2f"|format(payment.amount.value) }}</td>
-            <td>{{ payment.payment_method }}</td>
+            <td>{{ payment.payment_date|safe_str }}</td>
+            <td>{{ payment.payer_name|safe_str }}</td>
+            <td class="amount">{% if payment.amount %}${{ "%.2f"|format(payment.amount.value) }}{% else %}—{% endif %}</td>
+            <td>{{ payment.payment_method|safe_str }}</td>
         </tr>
         {% endfor %}
     </table>
     {% endif %}
 
-    {% if p.adjustments %}
+    {% if p.adjustments and p.adjustments|length > 0 %}
     <h2>Adjustments</h2>
     <table class="summary-table">
         <tr>
@@ -157,15 +159,15 @@
         </tr>
         {% for adj in p.adjustments %}
         <tr>
-            <td>{% if adj.applied_date %}{{ adj.applied_date }}{% else %}—{% endif %}</td>
-            <td>{{ adj.reason }}</td>
-            <td class="amount">${{ "%.2f"|format(adj.amount.value) }}</td>
+            <td>{% if adj.applied_date %}{{ adj.applied_date|safe_str }}{% else %}—{% endif %}</td>
+            <td>{{ adj.reason|truncate_text(100)|safe_str }}</td>
+            <td class="amount">{% if adj.amount %}${{ "%.2f"|format(adj.amount.value) }}{% else %}—{% endif %}</td>
         </tr>
         {% endfor %}
     </table>
     {% endif %}
 
-    {% if p.appeals %}
+    {% if p.appeals and p.appeals|length > 0 %}
     <h2>Appeals</h2>
     <table class="summary-table">
         <tr>
@@ -176,10 +178,10 @@
         </tr>
         {% for appeal in p.appeals %}
         <tr>
-            <td>{{ appeal.appeal_id }}</td>
-            <td>{{ appeal.appeal_date }}</td>
-            <td>{{ appeal.appeal_status }}</td>
-            <td>{{ appeal.appeal_reason }}</td>
+            <td>{{ appeal.appeal_id|safe_str }}</td>
+            <td>{{ appeal.appeal_date|safe_str }}</td>
+            <td>{{ appeal.appeal_status|safe_str }}</td>
+            <td>{{ appeal.appeal_reason|truncate_text(100)|safe_str }}</td>
         </tr>
         {% endfor %}
     </table>

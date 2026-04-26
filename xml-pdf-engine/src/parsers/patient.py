@@ -1,201 +1,267 @@
 from lxml import etree
 from datetime import datetime
+import logging
 from src.models.patient import (
-    PatientReport, Demographic, Insurance, EmergencyContact, Address, 
+    PatientReport, Demographic, Insurance, EmergencyContact, Address,
     ContactMethod, Name, RegistrationMetadata, Allergy, ExternalId
 )
 from src.parsers.base import BaseParser
 
+logger = logging.getLogger(__name__)
+
 class PatientParser(BaseParser):
     def parse(self, xml_path):
         ns = {'his': 'urn:his:patient:v2'}
-        
-        # Create a secure parser that disables external entity resolution
-        parser = etree.XMLParser(resolve_entities=False, remove_blank_text=True)
-        tree = etree.parse(xml_path, parser)
-        root = tree.getroot()
 
-        def get_text(node, path):
-            result = node.xpath(path, namespaces=ns)
-            return result[0].text if result else None
+        try:
+            # Create a secure parser that disables external entity resolution
+            parser = etree.XMLParser(resolve_entities=False, remove_blank_text=True)
+            tree = etree.parse(xml_path, parser)
+            root = tree.getroot()
+        except etree.XMLSyntaxError as e:
+            logger.error(f"Invalid XML syntax in {xml_path}: {e}")
+            raise ValueError(f"Invalid XML: {e}")
+        except Exception as e:
+            logger.error(f"Error parsing XML {xml_path}: {e}")
+            raise ValueError(f"Error parsing XML: {e}")
 
         # 1. Demographic
-        demo_node = root.xpath('//his:demographics', namespaces=ns)[0]
-        name_node = demo_node.xpath('his:name', namespaces=ns)[0]
-        
+        demo_node = self.safe_get_element(root, '//his:demographics', namespaces=ns, required=True)
+        if not demo_node:
+            raise ValueError("Required demographics section not found")
+
+        name_node = self.safe_get_element(demo_node, 'his:name', namespaces=ns, required=True)
+
         demographic = Demographic(
             name=Name(
-                prefix=get_text(name_node, 'his:prefix'),
-                first_name=get_text(name_node, 'his:firstName') or "",
-                middle_name=get_text(name_node, 'his:middleName'),
-                last_name=get_text(name_node, 'his:lastName') or "",
-                suffix=get_text(name_node, 'his:suffix'),
-                preferred_name=get_text(name_node, 'his:preferredName'),
-                name_use=name_node.get('nameUse', 'LEGAL')
+                prefix=self.safe_get_text(name_node, 'his:prefix', ns, field_type='name'),
+                first_name=self.safe_get_text(name_node, 'his:firstName', ns, default="", field_type='name'),
+                middle_name=self.safe_get_text(name_node, 'his:middleName', ns, field_type='name'),
+                last_name=self.safe_get_text(name_node, 'his:lastName', ns, default="", field_type='name'),
+                suffix=self.safe_get_text(name_node, 'his:suffix', ns, field_type='name'),
+                preferred_name=self.safe_get_text(name_node, 'his:preferredName', ns, field_type='name'),
+                name_use=self.safe_get_attr(name_node, 'nameUse', 'LEGAL')
             ),
-            date_of_birth=get_text(demo_node, 'his:dateOfBirth') or "",
-            gender=get_text(demo_node, 'his:gender') or "",
-            blood_group=get_text(demo_node, 'his:bloodGroup'),
-            marital_status=get_text(demo_node, 'his:maritalStatus'),
-            nationality=get_text(demo_node, 'his:nationality'),
-            ethnicity=get_text(demo_node, 'his:ethnicity'),
-            primary_language=get_text(demo_node, 'his:primaryLanguage'),
-            interpreter_required=demo_node.xpath('his:interpreterRequired', namespaces=ns)[0].text == 'true' if demo_node.xpath('his:interpreterRequired', namespaces=ns) else None,
-            religion=get_text(demo_node, 'his:religion'),
-            occupation=get_text(demo_node, 'his:occupation')
+            date_of_birth=self.safe_get_text(demo_node, 'his:dateOfBirth', ns, default=""),
+            gender=self.safe_get_text(demo_node, 'his:gender', ns, default=""),
+            blood_group=self.safe_get_text(demo_node, 'his:bloodGroup', ns),
+            marital_status=self.safe_get_text(demo_node, 'his:maritalStatus', ns),
+            nationality=self.safe_get_text(demo_node, 'his:nationality', ns),
+            ethnicity=self.safe_get_text(demo_node, 'his:ethnicity', ns),
+            primary_language=self.safe_get_text(demo_node, 'his:primaryLanguage', ns),
+            interpreter_required=self.safe_get_text(self.safe_get_element(demo_node, 'his:interpreterRequired', ns), '.', ns) == 'true' if self.safe_get_element(demo_node, 'his:interpreterRequired', ns) else None,
+            religion=self.safe_get_text(demo_node, 'his:religion', ns),
+            occupation=self.safe_get_text(demo_node, 'his:occupation', ns)
         )
 
         # 2. Contacts (Main Patient - Scoped)
-        contact_info_node = root.xpath('his:contactInfo', namespaces=ns)[0]
-        
-        addresses = [Address(
-            street_line1=get_text(a, 'his:streetLine1') or "",
-            street_line2=get_text(a, 'his:streetLine2'),
-            city=get_text(a, 'his:city') or "",
-            state_province=get_text(a, 'his:stateProvince') or "",
-            postal_code=get_text(a, 'his:postalCode') or "",
-            country_code=get_text(a, 'his:countryCode') or "",
-            address_type=get_text(a, 'his:addressType'),
-            effective_from=get_text(a, 'his:effectiveFrom'),
-            effective_to=get_text(a, 'his:effectiveTo'),
-            preferred=a.get('preferred') == 'true'
-        ) for a in contact_info_node.xpath('his:addresses/his:address', namespaces=ns)]
+        contact_info_node = self.safe_get_element(root, 'his:contactInfo', namespaces=ns, required=False)
 
-        methods = [ContactMethod(
-            method=get_text(cm, 'his:method') or "",
-            value=get_text(cm, 'his:value') or "",
-            note=get_text(cm, 'his:note'),
-            preferred=cm.get('preferred') == 'true',
-            active=cm.get('active', 'true') == 'true'
-        ) for cm in contact_info_node.xpath('his:contactMethods/his:contactMethod', namespaces=ns)]
+        addresses = []
+        if contact_info_node:
+            for a in contact_info_node.xpath('his:addresses/his:address', namespaces=ns) or []:
+                try:
+                    addresses.append(Address(
+                        street_line1=self.safe_get_text(a, 'his:streetLine1', ns, default="", field_type='address'),
+                        street_line2=self.safe_get_text(a, 'his:streetLine2', ns, field_type='address'),
+                        city=self.safe_get_text(a, 'his:city', ns, default="", field_type='address'),
+                        state_province=self.safe_get_text(a, 'his:stateProvince', ns, default="", field_type='address'),
+                        postal_code=self.safe_get_text(a, 'his:postalCode', ns, default="", field_type='code'),
+                        country_code=self.safe_get_text(a, 'his:countryCode', ns, default="", field_type='code'),
+                        address_type=self.safe_get_text(a, 'his:addressType', ns),
+                        effective_from=self.safe_get_text(a, 'his:effectiveFrom', ns),
+                        effective_to=self.safe_get_text(a, 'his:effectiveTo', ns),
+                        preferred=a.get('preferred') == 'true'
+                    ))
+                except Exception as e:
+                    logger.warning(f"Error parsing address: {e}")
+                    continue
+
+        methods = []
+        if contact_info_node:
+            for cm in contact_info_node.xpath('his:contactMethods/his:contactMethod', namespaces=ns) or []:
+                try:
+                    methods.append(ContactMethod(
+                        method=self.safe_get_text(cm, 'his:method', ns, default=""),
+                        value=self.safe_get_text(cm, 'his:value', ns, default="", field_type='phone'),
+                        note=self.safe_get_text(cm, 'his:note', ns),
+                        preferred=cm.get('preferred') == 'true',
+                        active=cm.get('active', 'true') == 'true'
+                    ))
+                except Exception as e:
+                    logger.warning(f"Error parsing contact method: {e}")
+                    continue
 
         # 3. Insurance
         insurance = []
-        for i in root.xpath('.//his:insurancePlan', namespaces=ns):
-            # Parse subscriber info if present
-            subscriber_node = i.xpath('his:subscriberName', namespaces=ns)
-            subscriber_info = None
-            if subscriber_node:
-                sub_name_node = subscriber_node[0]
-                subscriber_info = Name(
-                    prefix=get_text(sub_name_node, 'his:prefix'),
-                    first_name=get_text(sub_name_node, 'his:firstName') or "",
-                    middle_name=get_text(sub_name_node, 'his:middleName'),
-                    last_name=get_text(sub_name_node, 'his:lastName') or "",
-                    suffix=get_text(sub_name_node, 'his:suffix'),
-                    preferred_name=get_text(sub_name_node, 'his:preferredName')
-                )
-            
-            insurance.append(Insurance(
-                insurance_type=i.get('insuranceType') or "",
-                insurer_name=get_text(i, 'his:insurerName') or "",
-                plan_name=get_text(i, 'his:planName') or "",
-                policy_number=get_text(i, 'his:policyNumber') or "",
-                group_number=get_text(i, 'his:groupNumber'),
-                member_id=get_text(i, 'his:memberId') or "",
-                subscriber_name=subscriber_info,
-                subscriber_dob=get_text(i, 'his:subscriberDOB'),
-                relationship_to_patient=get_text(i, 'his:relationshipToPatient'),
-                effective_date=get_text(i, 'his:effectiveDate') or "",
-                termination_date=get_text(i, 'his:terminationDate'),
-                copay_amount=float(get_text(i, 'his:copayAmount') or 0),
-                deductible_amount=float(get_text(i, 'his:deductibleAmount') or 0) if get_text(i, 'his:deductibleAmount') else None,
-                verification_status=get_text(i, 'his:verificationStatus'),
-                verified_date=get_text(i, 'his:verifiedDate'),
-                pre_auth_required=i.xpath('his:preAuthRequired', namespaces=ns)[0].text == 'true' if i.xpath('his:preAuthRequired', namespaces=ns) else None,
-                notes=get_text(i, 'his:notes'),
-                active=i.get('active', 'true') == 'true'
-            ))
+        for i in root.xpath('.//his:insurancePlan', namespaces=ns) or []:
+            try:
+                # Parse subscriber info if present
+                sub_name_node = self.safe_get_element(i, 'his:subscriberName', ns)
+                subscriber_info = None
+                if sub_name_node:
+                    subscriber_info = Name(
+                        prefix=self.safe_get_text(sub_name_node, 'his:prefix', ns, field_type='name'),
+                        first_name=self.safe_get_text(sub_name_node, 'his:firstName', ns, default="", field_type='name'),
+                        middle_name=self.safe_get_text(sub_name_node, 'his:middleName', ns, field_type='name'),
+                        last_name=self.safe_get_text(sub_name_node, 'his:lastName', ns, default="", field_type='name'),
+                        suffix=self.safe_get_text(sub_name_node, 'his:suffix', ns, field_type='name'),
+                        preferred_name=self.safe_get_text(sub_name_node, 'his:preferredName', ns, field_type='name')
+                    )
+
+                copay = self.safe_get_text(i, 'his:copayAmount', ns, default="0")
+                deductible = self.safe_get_text(i, 'his:deductibleAmount', ns)
+
+                insurance.append(Insurance(
+                    insurance_type=self.safe_get_attr(i, 'insuranceType', default=""),
+                    insurer_name=self.safe_get_text(i, 'his:insurerName', ns, default="", field_type='text'),
+                    plan_name=self.safe_get_text(i, 'his:planName', ns, default="", field_type='text'),
+                    policy_number=self.safe_get_text(i, 'his:policyNumber', ns, default="", field_type='identifier'),
+                    group_number=self.safe_get_text(i, 'his:groupNumber', ns, field_type='identifier'),
+                    member_id=self.safe_get_text(i, 'his:memberId', ns, default="", field_type='identifier'),
+                    subscriber_name=subscriber_info,
+                    subscriber_dob=self.safe_get_text(i, 'his:subscriberDOB', ns),
+                    relationship_to_patient=self.safe_get_text(i, 'his:relationshipToPatient', ns),
+                    effective_date=self.safe_get_text(i, 'his:effectiveDate', ns, default=""),
+                    termination_date=self.safe_get_text(i, 'his:terminationDate', ns),
+                    copay_amount=float(copay) if copay else 0.0,
+                    deductible_amount=float(deductible) if deductible else None,
+                    verification_status=self.safe_get_text(i, 'his:verificationStatus', ns),
+                    verified_date=self.safe_get_text(i, 'his:verifiedDate', ns),
+                    pre_auth_required=self.safe_get_text(self.safe_get_element(i, 'his:preAuthRequired', ns), '.', ns) == 'true' if self.safe_get_element(i, 'his:preAuthRequired', ns) else None,
+                    notes=self.safe_get_text(i, 'his:notes', ns, field_type='description'),
+                    active=i.get('active', 'true') == 'true'
+                ))
+            except Exception as e:
+                logger.warning(f"Error parsing insurance plan: {e}")
+                continue
 
         # 4. Emergency Contacts (Full Mapping)
         def parse_contact_info(ci_node):
-            ec_addresses = [Address(
-                street_line1=get_text(a, 'his:streetLine1') or "",
-                street_line2=get_text(a, 'his:streetLine2'),
-                city=get_text(a, 'his:city') or "",
-                state_province=get_text(a, 'his:stateProvince') or "",
-                postal_code=get_text(a, 'his:postalCode') or "",
-                country_code=get_text(a, 'his:countryCode') or "",
-                address_type=get_text(a, 'his:addressType'),
-                preferred=a.get('preferred') == 'true'
-            ) for a in ci_node.xpath('.//his:address', namespaces=ns)]
-            
-            ec_methods = [ContactMethod(
-                method=get_text(cm, 'his:method') or "",
-                value=get_text(cm, 'his:value') or "",
-                note=get_text(cm, 'his:note'),
-                preferred=cm.get('preferred') == 'true',
-                active=cm.get('active', 'true') == 'true'
-            ) for cm in ci_node.xpath('.//his:contactMethod', namespaces=ns)]
+            ec_addresses = []
+            if ci_node:
+                for a in ci_node.xpath('.//his:address', namespaces=ns) or []:
+                    try:
+                        ec_addresses.append(Address(
+                            street_line1=self.safe_get_text(a, 'his:streetLine1', ns, default="", field_type='address'),
+                            street_line2=self.safe_get_text(a, 'his:streetLine2', ns, field_type='address'),
+                            city=self.safe_get_text(a, 'his:city', ns, default="", field_type='address'),
+                            state_province=self.safe_get_text(a, 'his:stateProvince', ns, default="", field_type='address'),
+                            postal_code=self.safe_get_text(a, 'his:postalCode', ns, default="", field_type='code'),
+                            country_code=self.safe_get_text(a, 'his:countryCode', ns, default="", field_type='code'),
+                            address_type=self.safe_get_text(a, 'his:addressType', ns),
+                            preferred=a.get('preferred') == 'true'
+                        ))
+                    except Exception as e:
+                        logger.warning(f"Error parsing emergency contact address: {e}")
+                        continue
+
+            ec_methods = []
+            if ci_node:
+                for cm in ci_node.xpath('.//his:contactMethod', namespaces=ns) or []:
+                    try:
+                        ec_methods.append(ContactMethod(
+                            method=self.safe_get_text(cm, 'his:method', ns, default=""),
+                            value=self.safe_get_text(cm, 'his:value', ns, default="", field_type='phone'),
+                            note=self.safe_get_text(cm, 'his:note', ns),
+                            preferred=cm.get('preferred') == 'true',
+                            active=cm.get('active', 'true') == 'true'
+                        ))
+                    except Exception as e:
+                        logger.warning(f"Error parsing emergency contact method: {e}")
+                        continue
             return ec_addresses, ec_methods
 
         emergency = []
-        for ec in root.xpath('.//his:emergencyContact', namespaces=ns):
-            name_n = ec.xpath('his:name', namespaces=ns)[0]
-            ci_n = ec.xpath('his:contactInfo', namespaces=ns)[0]
-            addr_list, method_list = parse_contact_info(ci_n)
-            
-            emergency.append(EmergencyContact(
-                priority=int(ec.get('priority', 0)),
-                name=Name(
-                    prefix=get_text(name_n, 'his:prefix'),
-                    first_name=get_text(name_n, 'his:firstName') or "",
-                    middle_name=get_text(name_n, 'his:middleName'),
-                    last_name=get_text(name_n, 'his:lastName') or "",
-                    suffix=get_text(name_n, 'his:suffix'),
-                    preferred_name=get_text(name_n, 'his:preferredName'),
-                    name_use=name_n.get('nameUse', 'LEGAL')
-                ),
-                relationship=get_text(ec, 'his:relationship') or "",
-                addresses=addr_list,
-                methods=method_list,
-                note=get_text(ec, 'his:note'),
-                legal_guardian=ec.get('legalGuardian') == 'true'
-            ))
+        for ec in root.xpath('.//his:emergencyContact', namespaces=ns) or []:
+            try:
+                name_n = self.safe_get_element(ec, 'his:name', ns)
+                ci_n = self.safe_get_element(ec, 'his:contactInfo', ns)
+                addr_list, method_list = parse_contact_info(ci_n) if ci_n else ([], [])
+
+                emergency.append(EmergencyContact(
+                    priority=int(ec.get('priority', 0)),
+                    name=Name(
+                        prefix=self.safe_get_text(name_n, 'his:prefix', ns, field_type='name') if name_n else None,
+                        first_name=self.safe_get_text(name_n, 'his:firstName', ns, default="", field_type='name') if name_n else "",
+                        middle_name=self.safe_get_text(name_n, 'his:middleName', ns, field_type='name') if name_n else None,
+                        last_name=self.safe_get_text(name_n, 'his:lastName', ns, default="", field_type='name') if name_n else "",
+                        suffix=self.safe_get_text(name_n, 'his:suffix', ns, field_type='name') if name_n else None,
+                        preferred_name=self.safe_get_text(name_n, 'his:preferredName', ns, field_type='name') if name_n else None,
+                        name_use=name_n.get('nameUse', 'LEGAL') if name_n else 'LEGAL'
+                    ),
+                    relationship=self.safe_get_text(ec, 'his:relationship', ns, default=""),
+                    addresses=addr_list,
+                    methods=method_list,
+                    note=self.safe_get_text(ec, 'his:note', ns, field_type='description'),
+                    legal_guardian=ec.get('legalGuardian') == 'true'
+                ))
+            except Exception as e:
+                logger.warning(f"Error parsing emergency contact: {e}")
+                continue
 
         # 5. Allergies
         allergies = []
-        for allergy_node in root.xpath('.//his:allergy', namespaces=ns):
-            allergies.append(Allergy(
-                allergen=get_text(allergy_node, 'his:allergen') or "",
-                allergen_type=get_text(allergy_node, 'his:allergenType') or "",
-                severity=get_text(allergy_node, 'his:severity') or "",
-                reaction=get_text(allergy_node, 'his:reaction'),
-                onset_date=get_text(allergy_node, 'his:onsetDate'),
-                verified_by=get_text(allergy_node, 'his:verifiedBy'),
-                status=get_text(allergy_node, 'his:status') or "ACTIVE",
-                recorded=allergy_node.get('recorded')
-            ))
+        for allergy_node in root.xpath('.//his:allergy', namespaces=ns) or []:
+            try:
+                allergies.append(Allergy(
+                    allergen=self.safe_get_text(allergy_node, 'his:allergen', ns, default="", field_type='text'),
+                    allergen_type=self.safe_get_text(allergy_node, 'his:allergenType', ns, default=""),
+                    severity=self.safe_get_text(allergy_node, 'his:severity', ns, default=""),
+                    reaction=self.safe_get_text(allergy_node, 'his:reaction', ns, field_type='description'),
+                    onset_date=self.safe_get_text(allergy_node, 'his:onsetDate', ns),
+                    verified_by=self.safe_get_text(allergy_node, 'his:verifiedBy', ns, field_type='name'),
+                    status=self.safe_get_text(allergy_node, 'his:status', ns, default="ACTIVE"),
+                    recorded=allergy_node.get('recorded')
+                ))
+            except Exception as e:
+                logger.warning(f"Error parsing allergy: {e}")
+                continue
 
         # 6. Registration Metadata
-        reg_node = root.xpath('//his:registration', namespaces=ns)
-        
+        reg_node = self.safe_get_element(root, '//his:registration', ns)
+
         # Parse external IDs
         external_ids = []
         if reg_node:
-            for ext_id_node in reg_node[0].xpath('.//his:externalId', namespaces=ns):
-                external_ids.append(ExternalId(
-                    id_type=get_text(ext_id_node, 'his:idType') or "",
-                    id_value=get_text(ext_id_node, 'his:idValue') or "",
-                    issuer=get_text(ext_id_node, 'his:issuer')
-                ))
-        
+            for ext_id_node in reg_node.xpath('.//his:externalId', namespaces=ns) or []:
+                try:
+                    external_ids.append(ExternalId(
+                        id_type=self.safe_get_text(ext_id_node, 'his:idType', ns, default="", field_type='code'),
+                        id_value=self.safe_get_text(ext_id_node, 'his:idValue', ns, default="", field_type='identifier'),
+                        issuer=self.safe_get_text(ext_id_node, 'his:issuer', ns)
+                    ))
+                except Exception as e:
+                    logger.warning(f"Error parsing external ID: {e}")
+                    continue
+
+        try:
+            reg_facility = self.safe_get_text(reg_node, 'his:facility', ns, default="Unknown") if reg_node else "Unknown"
+            reg_date_str = self.safe_get_text(reg_node, 'his:registrationDate', ns) if reg_node else None
+            reg_date = datetime.fromisoformat(reg_date_str) if reg_date_str else datetime.now()
+            last_upd_str = self.safe_get_text(reg_node, 'his:lastUpdated', ns) if reg_node else None
+            last_upd = datetime.fromisoformat(last_upd_str) if last_upd_str else None
+        except ValueError as e:
+            logger.warning(f"Error parsing registration dates: {e}")
+            reg_date = datetime.now()
+            last_upd = None
+
         registration_metadata = RegistrationMetadata(
-            registration_facility=get_text(reg_node[0], 'his:facility') if reg_node else "Unknown",
-            registration_date=datetime.fromisoformat(get_text(reg_node[0], 'his:registrationDate') or datetime.now().isoformat()) if reg_node else datetime.now(),
-            registered_by=get_text(reg_node[0], 'his:registeredBy') if reg_node else "",
-            last_updated=datetime.fromisoformat(get_text(reg_node[0], 'his:lastUpdated')) if reg_node and get_text(reg_node[0], 'his:lastUpdated') else None,
-            last_updated_by=get_text(reg_node[0], 'his:lastUpdatedBy') if reg_node else None,
-            source_system=get_text(reg_node[0], 'his:sourceSystem') if reg_node else "HIS",
+            registration_facility=reg_facility,
+            registration_date=reg_date,
+            registered_by=self.safe_get_text(reg_node, 'his:registeredBy', ns, default="") if reg_node else "",
+            last_updated=last_upd,
+            last_updated_by=self.safe_get_text(reg_node, 'his:lastUpdatedBy', ns) if reg_node else None,
+            source_system=self.safe_get_text(reg_node, 'his:sourceSystem', ns, default="HIS") if reg_node else "HIS",
             external_ids=external_ids
         )
 
         return PatientReport(
-            mrn=root.get('mrn') or "",
-            status=get_text(demo_node, 'his:status') or "ACTIVE",
-            demographics=demographic, 
-            addresses=addresses, 
-            methods=methods, 
+            mrn=self.safe_get_attr(root, 'mrn', default="", field_type='identifier'),
+            status=self.safe_get_text(demo_node, 'his:status', ns, default="ACTIVE") if demo_node else "ACTIVE",
+            demographics=demographic,
+            addresses=addresses,
+            methods=methods,
             insurance=insurance,
             allergies=allergies,
             emergency=emergency,

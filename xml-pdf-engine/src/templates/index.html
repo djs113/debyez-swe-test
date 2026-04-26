@@ -663,6 +663,11 @@
         document.getElementById('schemaSelect').addEventListener('change', async function() {
             const selectedSchema = this.value;
             if (selectedSchema) {
+                // Check if file has been uploaded first
+                if (!currentRequestId) {
+                    showStatus('Please upload a file first', 'error');
+                    return;
+                }
                 // Validate the uploaded file against the selected schema
                 try {
                     showStatus('Validating file against selected schema...', 'loading');
