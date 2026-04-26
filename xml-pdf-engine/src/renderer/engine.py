@@ -10,6 +10,25 @@ env = Environment(
     auto_reload=True
 )
 
+# Add custom Jinja2 filters for robust rendering
+def safe_str(value, default="N/A"):
+    """Convert value to string safely, handling None and empty values."""
+    if value is None or value == "" or value == []:
+        return default
+    return str(value).strip()
+
+def truncate_text(value, length=500, suffix="..."):
+    """Truncate text to specified length with suffix."""
+    if value is None:
+        return ""
+    text = str(value).strip()
+    if len(text) <= length:
+        return text
+    return text[:length-len(suffix)] + suffix
+
+env.filters['safe_str'] = safe_str
+env.filters['truncate_text'] = truncate_text
+
 def render_document(schema_type, xml_path, output_path, template_name):
     """
     Main engine: uses the Registry to lookup the correct parser and template.

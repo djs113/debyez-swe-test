@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<ClinicalEncounter xmlns="urn:his:encounter:v2" encounterId="ENC-002" patientMRN="PAT-002">
+    <encounterType>Outpatient</encounterType>
+    <admissionDateTime>2024-03-21T14:00:00</admissionDateTime>
+    <chiefComplaint>Follow-up visit</chiefComplaint>
+    <facility>Clinic B</facility>
+    <unknownElement>This should be skipped</unknownElement>
+    <customField>Extra data</customField>
+    <provider role="Attending">
+        <providerId>DOC-001</providerId>
+        <providerName>Dr. Smith</providerName>
+        <specialty>Cardiology</specialty>
+        <unknownProviderField>should skip</unknownProviderField>
+    </provider>
+</ClinicalEncounter>

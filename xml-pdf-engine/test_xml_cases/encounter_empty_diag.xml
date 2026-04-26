@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<ClinicalEncounter xmlns="urn:his:encounter:v2" encounterId="ENC-001" patientMRN="PAT-001">
+    <encounterType>Inpatient</encounterType>
+    <admissionDateTime>2024-03-20T10:00:00</admissionDateTime>
+    <chiefComplaint>Routine checkup</chiefComplaint>
+    <facility>Hospital A</facility>
+    <diagnosis/>
+    <diagnosis diagnosisId="D001" primary="true">
+        <icd10Code>
+            <code>I10</code>
+            <description>Essential hypertension</description>
+        </icd10Code>
+        <confirmationStatus>CONFIRMED</confirmationStatus>
+    </diagnosis>
+</ClinicalEncounter>

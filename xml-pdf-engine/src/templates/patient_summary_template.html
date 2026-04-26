@@ -14,47 +14,53 @@
 </head>
 <body>
     <div class="header">
-        <h1>Patient Summary: {{ p.demographics.name.first_name }} {{ p.demographics.name.last_name }}</h1>
-        <p><strong>MRN:</strong> {{ p.mrn }} | <strong>DOB:</strong> {{ p.demographics.date_of_birth }}</p>
+        <h1>Patient Summary: {{ p.demographics.name.first_name|safe_str }} {{ p.demographics.name.last_name|safe_str }}</h1>
+        <p><strong>MRN:</strong> {{ p.mrn|safe_str }} | <strong>DOB:</strong> {{ p.demographics.date_of_birth|safe_str }}</p>
     </div>
 
     <div class="grid">
         <div class="box">
             <h2>Primary Contact</h2>
-            {% if p.addresses %}
-            <p>{{ p.addresses[0].street_line1 }}<br>
-               {{ p.addresses[0].city }}, {{ p.addresses[0].state_province }}</p>
+            {% if p.addresses and p.addresses|length > 0 %}
+            <p>{{ p.addresses[0].street_line1|safe_str }}<br>
+               {{ p.addresses[0].city|safe_str }}, {{ p.addresses[0].state_province|safe_str }}</p>
+            {% else %}
+            <p><em>No address on file</em></p>
             {% endif %}
-            {% if p.methods %}
-            <p><strong>Phone:</strong> {{ p.methods[0].value }}</p>
+            {% if p.methods and p.methods|length > 0 %}
+            <p><strong>Phone:</strong> {{ p.methods[0].value|safe_str }}</p>
             {% endif %}
         </div>
         <div class="box">
             <h2>Emergency Contact</h2>
-            {% if p.emergency %}
-            <p><strong>{{ p.emergency[0].name.first_name }} {{ p.emergency[0].name.last_name }}</strong><br>
-               Relationship: {{ p.emergency[0].relationship }}<br>
-               {% if p.emergency[0].methods %}Phone: {{ p.emergency[0].methods[0].value }}{% endif %}</p>
+            {% if p.emergency and p.emergency|length > 0 %}
+            <p><strong>{{ p.emergency[0].name.first_name|safe_str }} {{ p.emergency[0].name.last_name|safe_str }}</strong><br>
+               Relationship: {{ p.emergency[0].relationship|safe_str }}<br>
+               {% if p.emergency[0].methods and p.emergency[0].methods|length > 0 %}Phone: {{ p.emergency[0].methods[0].value|safe_str }}{% endif %}</p>
+            {% else %}
+            <p><em>No emergency contact</em></p>
             {% endif %}
         </div>
     </div>
 
+    {% if p.insurance and p.insurance|length > 0 %}
     <h2>Insurance Coverage</h2>
     <table class="summary-table">
         <tr><th>Insurer</th><th>Plan</th><th>Policy #</th></tr>
         {% for ins in p.insurance %}
         <tr>
-            <td>{{ ins.insurer_name }}</td>
-            <td>{{ ins.plan_name }}</td>
-            <td>{{ ins.policy_number }}</td>
+            <td>{{ ins.insurer_name|safe_str }}</td>
+            <td>{{ ins.plan_name|safe_str }}</td>
+            <td>{{ ins.policy_number|safe_str }}</td>
         </tr>
         {% endfor %}
     </table>
+    {% endif %}
 
-    {% if p.allergies %}
+    {% if p.allergies and p.allergies|length > 0 %}
     <h2>Clinical Alerts (Allergies)</h2>
     <p style="color: #c53030; font-weight: bold;">
-        {% for a in p.allergies %} {{ a.allergen }} ({{ a.severity }}){% if not loop.last %}, {% endif %}{% endfor %}
+        {% for a in p.allergies %} {{ a.allergen|safe_str }} ({{ a.severity|safe_str }}){% if not loop.last %}, {% endif %}{% endfor %}
     </p>
     {% endif %}
 </body>

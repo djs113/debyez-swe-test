@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<PatientRecord xmlns="urn:his:patient:v2" mrn="PAT-001">
+    <registration>
+        <facility>Hospital A</facility>
+        <registrationDate>2024-01-15</registrationDate>
+    </registration>
+    <demographics>
+        <status>ACTIVE</status>
+        <name>
+            <firstName>John</firstName>
+            <lastName>Doe</lastName>
+        </name>
+        <dateOfBirth>1990-01-01</dateOfBirth>
+        <gender>M</gender>
+    </demographics>
+    <contactInfo/>
+</PatientRecord>
