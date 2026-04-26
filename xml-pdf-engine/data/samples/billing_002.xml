@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Emergency claim — single payer, no prior auth, no adjustments yet, balance outstanding -->
+<hbill:MedicalClaim xmlns:hbill="urn:his:billing:v2"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="urn:his:billing:v2 medical-billing.xsd"
+                    claimId="CLM-2023-00519877"
+                    patientMRN="MRN-00291045"
+                    encounterId="ENC-2023-051104"
+                    status="SUBMITTED"
+                    version="1"
+                    electronicClaim="true"
+                    >
+
+    <hbill:claimType>INSTITUTIONAL</hbill:claimType>
+    <hbill:serviceStartDate>2023-11-30</hbill:serviceStartDate>
+    <!-- serviceEndDate absent — encounter ongoing at time of claim generation -->
+    <hbill:submissionDate>2023-12-01</hbill:submissionDate>
+
+    <!-- Minimal billing provider — no group, no service address -->
+    <hbill:billingProvider>
+        <hbill:npi>9876543210</hbill:npi>
+        <hbill:providerName>Chicago North Clinic</hbill:providerName>
+        <hbill:taxonomy>282N00000X</hbill:taxonomy>
+        <hbill:billingAddress>
+            <hbill:line1>500 Lakeshore Blvd</hbill:line1>
+            <hbill:city>Chicago</hbill:city>
+            <hbill:state>IL</hbill:state>
+            <hbill:zip>60601</hbill:zip>
+            <hbill:country>US</hbill:country>
+        </hbill:billingAddress>
+    </hbill:billingProvider>
+
+    <!-- Single payer — no secondary -->
+    <hbill:payers>
+        <hbill:payer priority="1"
+                     active="true"
+                     >
+            <hbill:payerId>BCBSIL</hbill:payerId>
+            <hbill:payerName>BlueCross BlueShield of Illinois</hbill:payerName>
+            <hbill:payerType>COMMERCIAL</hbill:payerType>
+            <hbill:memberId>XWY0041288</hbill:memberId>
+            <!-- No group number, no plan name -->
+        </hbill:payer>
+    </hbill:payers>
+
+    <hbill:diagnosisPointers>
+        <hbill:diagnosisPointer pointer="A"
+                                principal="true"
+                                >
+            <hbill:icd10Code>K37</hbill:icd10Code>
+            <hbill:description>Unspecified appendicitis</hbill:description>
+        </hbill:diagnosisPointer>
+    </hbill:diagnosisPointers>
+
+    <!-- Multiple ED service lines -->
+    <hbill:serviceLines>
+        <hbill:serviceLineItem lineNumber="1"
+                               status="INCLUDED"
+                               >
+            <hbill:cptCode>99285</hbill:cptCode>
+            <hbill:cptDescription>Emergency department visit, high medical decision making</hbill:cptDescription>
+            <hbill:serviceDate>2023-11-30</hbill:serviceDate>
+            <hbill:placeOfService>23</hbill:placeOfService>
+            <hbill:units>1</hbill:units>
+            <hbill:chargedAmount currency="USD">780.00</hbill:chargedAmount>
+            <hbill:diagnosisPointers>A</hbill:diagnosisPointers>
+        </hbill:serviceLineItem>
+        <hbill:serviceLineItem lineNumber="2"
+                               status="PENDING"
+                               >
+            <hbill:cptCode>74178</hbill:cptCode>
+            <hbill:cptDescription>CT abdomen and pelvis with contrast</hbill:cptDescription>
+            <hbill:serviceDate>2023-11-30</hbill:serviceDate>
+            <hbill:placeOfService>23</hbill:placeOfService>
+            <hbill:units>1</hbill:units>
+            <hbill:chargedAmount currency="USD">2100.00</hbill:chargedAmount>
+            <!-- allowedAmount and paidAmount absent — pending -->
+            <hbill:diagnosisPointers>A</hbill:diagnosisPointers>
+        </hbill:serviceLineItem>
+        <hbill:serviceLineItem lineNumber="3"
+                               status="PENDING"
+                               >
+            <hbill:cptCode>85025</hbill:cptCode>
+            <hbill:cptDescription>Complete blood count (CBC) with differential</hbill:cptDescription>
+            <hbill:serviceDate>2023-11-30</hbill:serviceDate>
+            <hbill:placeOfService>23</hbill:placeOfService>
+            <hbill:units>1</hbill:units>
+            <hbill:chargedAmount currency="USD">185.00</hbill:chargedAmount>
+            <hbill:diagnosisPointers>A</hbill:diagnosisPointers>
+        </hbill:serviceLineItem>
+        <hbill:serviceLineItem lineNumber="4"
+                               status="PENDING"
+                               >
+            <hbill:cptCode>36415</hbill:cptCode>
+            <hbill:cptDescription>Collection of venous blood by venipuncture</hbill:cptDescription>
+            <hbill:serviceDate>2023-11-30</hbill:serviceDate>
+            <hbill:placeOfService>23</hbill:placeOfService>
+            <hbill:units>2</hbill:units>
+            <hbill:chargedAmount currency="USD">30.00</hbill:chargedAmount>
+            <hbill:diagnosisPointers>A</hbill:diagnosisPointers>
+        </hbill:serviceLineItem>
+    </hbill:serviceLines>
+
+    <!-- No adjustments yet -->
+    <!-- No payments yet -->
+
+    <hbill:totals>
+        <hbill:totalCharged currency="USD">3095.00</hbill:totalCharged>
+        <!-- allowedAmount and paidAmount absent -->
+        <hbill:balanceDue currency="USD">3095.00</hbill:balanceDue>
+    </hbill:totals>
+
+    <!-- No appeals, no referral number -->
+    <hbill:internalNotes>ED claim submitted same-day. Encounter still open — additional charges may
+        follow.</hbill:internalNotes>
+
+</hbill:MedicalClaim>

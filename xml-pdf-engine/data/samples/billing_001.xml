@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hbill:MedicalClaim xmlns:hbill="urn:his:billing:v2"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="urn:his:billing:v2 medical-billing.xsd"
+                    claimId="CLM-2023-00481920"
+                    patientMRN="MRN-00134872"
+                    encounterId="ENC-2023-048291"
+                    status="PARTIALLY_APPROVED"
+                    version="2"
+                    electronicClaim="true"
+                    >
+
+    <hbill:claimType>PROFESSIONAL</hbill:claimType>
+    <hbill:serviceStartDate>2023-09-14</hbill:serviceStartDate>
+    <hbill:serviceEndDate>2023-09-14</hbill:serviceEndDate>
+    <hbill:submissionDate>2023-09-18</hbill:submissionDate>
+
+    <hbill:billingProvider credentialType="MD">
+        <hbill:npi>1234567890</hbill:npi>
+        <hbill:ein>52-1234567</hbill:ein>
+        <hbill:providerName>Dr. Lena Martinez</hbill:providerName>
+        <hbill:taxonomy>207RC0000X</hbill:taxonomy>
+        <hbill:specialty>Cardiology</hbill:specialty>
+        <hbill:groupNPI>1098765432</hbill:groupNPI>
+        <hbill:groupName>Springfield Heart Associates LLC</hbill:groupName>
+        <hbill:billingAddress>
+            <hbill:line1>800 Medical Center Drive</hbill:line1>
+            <hbill:line2>Suite 410</hbill:line2>
+            <hbill:city>Springfield</hbill:city>
+            <hbill:state>IL</hbill:state>
+            <hbill:zip>62704</hbill:zip>
+            <hbill:country>US</hbill:country>
+        </hbill:billingAddress>
+        <hbill:serviceAddress>
+            <hbill:line1>Springfield General Hospital — Cardiology Clinic</hbill:line1>
+            <hbill:line2>Building C, 2nd Floor</hbill:line2>
+            <hbill:city>Springfield</hbill:city>
+            <hbill:state>IL</hbill:state>
+            <hbill:zip>62704</hbill:zip>
+            <hbill:country>US</hbill:country>
+        </hbill:serviceAddress>
+    </hbill:billingProvider>
+
+    <hbill:payers>
+        <hbill:payer priority="1"
+                     active="true"
+                     >
+            <hbill:payerId>BCBSIL</hbill:payerId>
+            <hbill:payerName>BlueCross BlueShield of Illinois</hbill:payerName>
+            <hbill:payerType>COMMERCIAL</hbill:payerType>
+            <hbill:memberId>XWY9922341</hbill:memberId>
+            <hbill:groupNumber>GRP-20041</hbill:groupNumber>
+            <hbill:planName>PPO Gold 1500</hbill:planName>
+            <hbill:electronicPayerId>00601</hbill:electronicPayerId>
+        </hbill:payer>
+        <hbill:payer priority="2"
+                     active="true"
+                     >
+            <hbill:payerId>AETNA</hbill:payerId>
+            <hbill:payerName>Aetna</hbill:payerName>
+            <hbill:payerType>COMMERCIAL</hbill:payerType>
+            <hbill:memberId>AET4471228</hbill:memberId>
+            <hbill:planName>HMO Select</hbill:planName>
+            <hbill:electronicPayerId>60054</hbill:electronicPayerId>
+        </hbill:payer>
+    </hbill:payers>
+
+    <hbill:diagnosisPointers>
+        <hbill:diagnosisPointer pointer="A"
+                                principal="true"
+                                >
+            <hbill:icd10Code>I25.10</hbill:icd10Code>
+            <hbill:description>Atherosclerotic heart disease of native coronary artery without
+                angina pectoris</hbill:description>
+        </hbill:diagnosisPointer>
+        <hbill:diagnosisPointer pointer="B"
+                                principal="false"
+                                >
+            <hbill:icd10Code>I10</hbill:icd10Code>
+            <hbill:description>Essential (primary) hypertension</hbill:description>
+        </hbill:diagnosisPointer>
+        <hbill:diagnosisPointer pointer="C"
+                                principal="false"
+                                >
+            <hbill:icd10Code>E78.5</hbill:icd10Code>
+            <hbill:description>Hyperlipidemia, unspecified</hbill:description>
+        </hbill:diagnosisPointer>
+    </hbill:diagnosisPointers>
+
+    <hbill:serviceLines>
+        <hbill:serviceLineItem lineNumber="1"
+                               status="INCLUDED"
+                               >
+            <hbill:cptCode>99214</hbill:cptCode>
+            <hbill:cptDescription>Office or other outpatient visit, established patient, moderate
+                complexity</hbill:cptDescription>
+            <hbill:serviceDate>2023-09-14</hbill:serviceDate>
+            <hbill:placeOfService>11</hbill:placeOfService>
+            <hbill:units>1</hbill:units>
+            <hbill:chargedAmount currency="USD">285.00</hbill:chargedAmount>
+            <hbill:allowedAmount currency="USD">218.40</hbill:allowedAmount>
+            <hbill:paidAmount currency="USD">188.40</hbill:paidAmount>
+            <hbill:diagnosisPointers>A B</hbill:diagnosisPointers>
+            <hbill:renderingProvider>1234567890</hbill:renderingProvider>
+        </hbill:serviceLineItem>
+        <hbill:serviceLineItem lineNumber="2"
+                               status="INCLUDED"
+                               >
+            <hbill:cptCode>93000</hbill:cptCode>
+            <hbill:cptDescription>Electrocardiogram, routine ECG with at least 12 leads</hbill:cptDescription>
+            <hbill:serviceDate>2023-09-14</hbill:serviceDate>
+            <hbill:placeOfService>11</hbill:placeOfService>
+            <hbill:units>1</hbill:units>
+            <hbill:chargedAmount currency="USD">95.00</hbill:chargedAmount>
+            <hbill:allowedAmount currency="USD">52.80</hbill:allowedAmount>
+            <hbill:paidAmount currency="USD">22.80</hbill:paidAmount>
+            <hbill:diagnosisPointers>A</hbill:diagnosisPointers>
+            <hbill:renderingProvider>1234567890</hbill:renderingProvider>
+        </hbill:serviceLineItem>
+        <hbill:serviceLineItem lineNumber="3"
+                               status="DENIED"
+                               >
+            <hbill:cptCode>93306</hbill:cptCode>
+            <hbill:cptDescription>Echocardiography, transthoracic, real-time with image
+                documentation</hbill:cptDescription>
+            <hbill:serviceDate>2023-09-14</hbill:serviceDate>
+            <hbill:placeOfService>11</hbill:placeOfService>
+            <hbill:units>1</hbill:units>
+            <hbill:chargedAmount currency="USD">1250.00</hbill:chargedAmount>
+            <hbill:diagnosisPointers>A</hbill:diagnosisPointers>
+            <hbill:renderingProvider>1234567890</hbill:renderingProvider>
+            <hbill:denialReason>Prior authorization required — not obtained. CO-4: The
+                service/equipment/drug is not covered under the patient plan.</hbill:denialReason>
+        </hbill:serviceLineItem>
+    </hbill:serviceLines>
+
+    <hbill:adjustments>
+        <hbill:adjustment adjustmentId="ADJ-001">
+            <hbill:reason>CONTRACTUAL</hbill:reason>
+            <hbill:reasonCode>CO-45</hbill:reasonCode>
+            <hbill:amount currency="USD">96.60</hbill:amount>
+            <hbill:appliedDate>2023-09-25</hbill:appliedDate>
+            <hbill:appliedBy>BCBSIL-AUTO</hbill:appliedBy>
+            <hbill:notes>Contractual adjustment per network rate agreement</hbill:notes>
+        </hbill:adjustment>
+        <hbill:adjustment adjustmentId="ADJ-002">
+            <hbill:reason>PATIENT_RESPONSIBILITY</hbill:reason>
+            <hbill:reasonCode>PR-1</hbill:reasonCode>
+            <hbill:amount currency="USD">30.00</hbill:amount>
+            <hbill:appliedDate>2023-09-25</hbill:appliedDate>
+            <hbill:notes>Patient copay per plan benefit</hbill:notes>
+        </hbill:adjustment>
+    </hbill:adjustments>
+
+    <hbill:payments>
+        <hbill:payment paymentId="PMT-001"
+                       postedBy="billing.auto"
+                       postedAt="2023-09-26T08:00:00"
+                       >
+            <hbill:paymentDate>2023-09-25</hbill:paymentDate>
+            <hbill:amount currency="USD">211.20</hbill:amount>
+            <hbill:paymentMethod>EFT</hbill:paymentMethod>
+            <hbill:referenceNumber>BCBSIL-ERA-8847231</hbill:referenceNumber>
+            <hbill:payerName>BlueCross BlueShield of Illinois</hbill:payerName>
+            <hbill:eraNumber>ERA-2023-8847231</hbill:eraNumber>
+        </hbill:payment>
+        <hbill:payment paymentId="PMT-002"
+                       postedBy="front.desk.staff"
+                       postedAt="2023-10-02T10:15:00"
+                       >
+            <hbill:paymentDate>2023-10-02</hbill:paymentDate>
+            <hbill:amount currency="USD">30.00</hbill:amount>
+            <hbill:paymentMethod>CREDIT_CARD</hbill:paymentMethod>
+            <hbill:referenceNumber>CC-TXN-88291</hbill:referenceNumber>
+            <hbill:payerName>Jonathan Pemberton (patient)</hbill:payerName>
+        </hbill:payment>
+    </hbill:payments>
+
+    <hbill:totals>
+        <hbill:totalCharged currency="USD">1630.00</hbill:totalCharged>
+        <hbill:totalAllowed currency="USD">271.20</hbill:totalAllowed>
+        <hbill:totalInsurancePaid currency="USD">211.20</hbill:totalInsurancePaid>
+        <hbill:totalAdjustments currency="USD">126.60</hbill:totalAdjustments>
+        <hbill:totalPatientResponsibility currency="USD">30.00</hbill:totalPatientResponsibility>
+        <hbill:totalPatientPaid currency="USD">30.00</hbill:totalPatientPaid>
+        <hbill:balanceDue currency="USD">0.00</hbill:balanceDue>
+    </hbill:totals>
+
+    <hbill:appeals>
+        <hbill:appeal appealId="APL-001"
+                      appealStatus="SUBMITTED"
+                      >
+            <hbill:appealDate>2023-10-05</hbill:appealDate>
+            <hbill:appealReason>Echocardiogram medically necessary for differential diagnosis of
+                chest pain in patient with multiple CAD risk factors. Requesting retroactive
+                authorization per BCBSIL policy §12.4.C.</hbill:appealReason>
+            <hbill:submittedBy>billing.coordinator.hayes</hbill:submittedBy>
+            <hbill:supportingDocs>Letter of medical necessity signed by Dr. Martinez; ECG report;
+                lipid panel results</hbill:supportingDocs>
+        </hbill:appeal>
+    </hbill:appeals>
+
+    <hbill:priorAuthNumber>PA-NOT-OBTAINED</hbill:priorAuthNumber>
+    <hbill:internalNotes>Echo denied — appeal submitted 10/05. Follow up with BCBSIL by 10/20.</hbill:internalNotes>
+
+</hbill:MedicalClaim>

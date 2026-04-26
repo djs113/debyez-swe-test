@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; font-size: 13px; line-height: 1.5; color: #2d3748; }
+        .header { display: flex; justify-content: space-between; border-bottom: 3px solid #2c3e50; padding-bottom: 10px; margin-bottom: 20px; }
+        .box { border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #f8fafc; }
+        h2 { font-size: 15px; color: #2c3e50; margin-top: 0; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .summary-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .summary-table th { background: #edf2f7; text-align: left; padding: 8px; border: 1px solid #e2e8f0; }
+        .summary-table td { padding: 8px; border: 1px solid #e2e8f0; }
+        .amount { text-align: right; font-family: monospace; }
+        .totals-table { margin-top: 15px; }
+        .totals-table tr:last-child { font-weight: bold; border-top: 2px solid #2c3e50; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        .status-draft { background: #fed7d7; color: #742a2a; }
+        .status-submitted { background: #bee3f8; color: #2c5282; }
+        .status-approved { background: #c6f6d5; color: #22543d; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1 style="margin: 0;">Medical Claim Summary</h1>
+            <p style="margin: 5px 0;"><strong>Claim ID:</strong> {{ p.claim_id }}</p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin: 0;"><strong>Patient MRN:</strong> {{ p.patient_mrn }}</p>
+            <p style="margin: 5px 0;"><span class="status-badge {% if p.status == 'DRAFT' %}status-draft{% elif p.status == 'SUBMITTED' %}status-submitted{% elif p.status == 'APPROVED' %}status-approved{% endif %}">{{ p.status }}</span></p>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="box">
+            <h2>Claim Information</h2>
+            <p><strong>Type:</strong> {{ p.claim_type }}</p>
+            <p><strong>Encounter ID:</strong> {{ p.encounter_id }}</p>
+            <p><strong>Service Start:</strong> {{ p.service_start_date }}</p>
+            {% if p.service_end_date %}<p><strong>Service End:</strong> {{ p.service_end_date }}</p>{% endif %}
+            {% if p.submission_date %}<p><strong>Submitted:</strong> {{ p.submission_date }}</p>{% endif %}
+        </div>
+        <div class="box">
+            <h2>Billing Provider</h2>
+            <p><strong>{{ p.billing_provider.provider_name }}</strong></p>
+            <p>NPI: {{ p.billing_provider.npi }}</p>
+            {% if p.billing_provider.specialty %}<p>Specialty: {{ p.billing_provider.specialty }}</p>{% endif %}
+            <p>{{ p.billing_provider.billing_address.line1 }}<br>
+               {{ p.billing_provider.billing_address.city }}, {{ p.billing_provider.billing_address.state }} {{ p.billing_provider.billing_address.zip }}</p>
+        </div>
+    </div>
+
+    <div class="box">
+        <h2>Primary Payer</h2>
+        {% if p.payers %}
+        {% set primary_payer = p.payers[0] %}
+        <p><strong>{{ primary_payer.payer_name }}</strong></p>
+        <p>Plan: {{ primary_payer.plan_name }}</p>
+        <p>Member ID: {{ primary_payer.member_id }}</p>
+        {% if primary_payer.group_number %}<p>Group #: {{ primary_payer.group_number }}</p>{% endif %}
+        {% endif %}
+    </div>
+
+    {% if p.service_lines %}
+    <h2>Service Lines</h2>
+    <table class="summary-table">
+        <tr>
+            <th>Line</th>
+            <th>CPT Code</th>
+            <th>Service Date</th>
+            <th>Units</th>
+            <th class="amount">Charged</th>
+            <th class="amount">Paid</th>
+        </tr>
+        {% for line in p.service_lines %}
+        <tr>
+            <td>#{{ line.line_number }}</td>
+            <td>{{ line.cpt_code }}</td>
+            <td>{{ line.service_date }}</td>
+            <td>{{ line.units }}</td>
+            <td class="amount">${{ "%.2f"|format(line.charged_amount.value) }}</td>
+            <td class="amount">{% if line.paid_amount %}${{ "%.2f"|format(line.paid_amount.value) }}{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    <h2>Financial Summary</h2>
+    <table class="summary-table totals-table">
+        <tr>
+            <td><strong>Total Charged:</strong></td>
+            <td class="amount"><strong>${{ "%.2f"|format(p.totals.total_charged.value) }}</strong></td>
+        </tr>
+        {% if p.totals.total_allowed %}
+        <tr>
+            <td>Total Allowed:</td>
+            <td class="amount">${{ "%.2f"|format(p.totals.total_allowed.value) }}</td>
+        </tr>
+        {% endif %}
+        {% if p.totals.total_insurance_paid %}
+        <tr>
+            <td>Insurance Paid:</td>
+            <td class="amount">${{ "%.2f"|format(p.totals.total_insurance_paid.value) }}</td>
+        </tr>
+        {% endif %}
+        {% if p.totals.total_adjustments %}
+        <tr>
+            <td>Adjustments:</td>
+            <td class="amount">${{ "%.2f"|format(p.totals.total_adjustments.value) }}</td>
+        </tr>
+        {% endif %}
+        {% if p.totals.total_patient_responsibility %}
+        <tr>
+            <td>Patient Responsibility:</td>
+            <td class="amount">${{ "%.2f"|format(p.totals.total_patient_responsibility.value) }}</td>
+        </tr>
+        {% endif %}
+        {% if p.totals.total_patient_paid %}
+        <tr>
+            <td>Patient Paid:</td>
+            <td class="amount">${{ "%.2f"|format(p.totals.total_patient_paid.value) }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td><strong>Balance Due:</strong></td>
+            <td class="amount"><strong>${{ "%.2f"|format(p.totals.balance_due.value) }}</strong></td>
+        </tr>
+    </table>
+
+    {% if p.payments %}
+    <h2>Payments Received</h2>
+    <table class="summary-table">
+        <tr>
+            <th>Payment Date</th>
+            <th>Payer</th>
+            <th>Amount</th>
+            <th>Method</th>
+        </tr>
+        {% for payment in p.payments %}
+        <tr>
+            <td>{{ payment.payment_date }}</td>
+            <td>{{ payment.payer_name }}</td>
+            <td class="amount">${{ "%.2f"|format(payment.amount.value) }}</td>
+            <td>{{ payment.payment_method }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if p.adjustments %}
+    <h2>Adjustments</h2>
+    <table class="summary-table">
+        <tr>
+            <th>Date</th>
+            <th>Reason</th>
+            <th class="amount">Amount</th>
+        </tr>
+        {% for adj in p.adjustments %}
+        <tr>
+            <td>{% if adj.applied_date %}{{ adj.applied_date }}{% else %}—{% endif %}</td>
+            <td>{{ adj.reason }}</td>
+            <td class="amount">${{ "%.2f"|format(adj.amount.value) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if p.appeals %}
+    <h2>Appeals</h2>
+    <table class="summary-table">
+        <tr>
+            <th>Appeal ID</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Reason</th>
+        </tr>
+        {% for appeal in p.appeals %}
+        <tr>
+            <td>{{ appeal.appeal_id }}</td>
+            <td>{{ appeal.appeal_date }}</td>
+            <td>{{ appeal.appeal_status }}</td>
+            <td>{{ appeal.appeal_reason }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+</body>
+</html>

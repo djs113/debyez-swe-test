@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; font-size: 13px; line-height: 1.5; color: #2d3748; }
+        .header { display: flex; justify-content: space-between; border-bottom: 3px solid #2c3e50; padding-bottom: 10px; margin-bottom: 20px; }
+        .box { border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #f8fafc; }
+        h2 { font-size: 15px; color: #2c3e50; margin-top: 0; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .summary-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .summary-table th { background: #edf2f7; text-align: left; padding: 8px; border: 1px solid #e2e8f0; }
+        .summary-table td { padding: 8px; border: 1px solid #e2e8f0; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        .status-in-progress { background: #bee3f8; color: #2c5282; }
+        .status-discharged { background: #c6f6d5; color: #22543d; }
+        .alert-box { background: #fed7d7; color: #742a2a; padding: 10px; border-left: 4px solid #f56565; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1 style="margin: 0;">Clinical Encounter Summary</h1>
+            <p style="margin: 5px 0;"><strong>Encounter ID:</strong> {{ p.encounter_id }}</p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin: 0;"><strong>Patient MRN:</strong> {{ p.patient_mrn }}</p>
+            <p style="margin: 5px 0;"><span class="status-badge {% if p.status == 'IN_PROGRESS' %}status-in-progress{% elif p.status == 'DISCHARGED' %}status-discharged{% endif %}">{{ p.status }}</span></p>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="box">
+            <h2>Encounter Details</h2>
+            <p><strong>Type:</strong> {{ p.encounter_type }}</p>
+            <p><strong>Chief Complaint:</strong> {{ p.chief_complaint }}</p>
+            <p><strong>Facility:</strong> {{ p.facility }}{% if p.department %}, {{ p.department }}{% endif %}</p>
+            <p><strong>Admission:</strong> {{ p.admission_date_time }}</p>
+            {% if p.discharge_date_time %}<p><strong>Discharged:</strong> {{ p.discharge_date_time }}</p>{% endif %}
+        </div>
+        <div class="box">
+            <h2>Primary Providers</h2>
+            {% if p.providers %}
+                {% for provider in p.providers %}
+                <p><strong>{{ provider.role }}:</strong> {{ provider.provider_name }}{% if provider.specialty %} ({{ provider.specialty }}){% endif %}</p>
+                {% endfor %}
+            {% else %}
+            <p>No providers recorded</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if p.vitals_history and p.vitals_history|length > 0 %}
+    <h2>Vital Signs (Latest)</h2>
+    <table class="summary-table">
+        <tr>
+            <th>Observation</th>
+            <th>Value</th>
+            <th>Unit</th>
+            <th>Status</th>
+            <th>Recorded</th>
+        </tr>
+        {% for vital in p.vitals_history[0] %}
+        <tr>
+            <td>{{ vital.code }}</td>
+            <td>{{ vital.value }}</td>
+            <td>{{ vital.unit }}</td>
+            <td>{% if vital.abnormal %}<span style="color: #c53030; font-weight: bold;">ABNORMAL</span>{% else %}Normal{% endif %}</td>
+            <td>{{ vital.recorded_at }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if p.diagnoses %}
+    <h2>Diagnoses</h2>
+    <table class="summary-table">
+        <tr>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Primary</th>
+        </tr>
+        {% for diag in p.diagnoses %}
+        <tr>
+            <td>{{ diag.icd10_code.code }}</td>
+            <td>{{ diag.icd10_code.description }}</td>
+            <td>{{ diag.confirmation_status }}</td>
+            <td>{% if diag.primary %}Yes{% else %}No{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if p.medication_orders %}
+    <h2>Medication Orders</h2>
+    <table class="summary-table">
+        <tr>
+            <th>Medication</th>
+            <th>Dosage</th>
+            <th>Route</th>
+            <th>Frequency</th>
+            <th>Status</th>
+        </tr>
+        {% for med in p.medication_orders %}
+        <tr>
+            <td>{{ med.medication_name }}</td>
+            <td>{{ med.dosage }}</td>
+            <td>{{ med.route }}</td>
+            <td>{{ med.frequency }}</td>
+            <td>{{ med.status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if p.procedures %}
+    <h2>Procedures</h2>
+    <table class="summary-table">
+        <tr>
+            <th>Procedure</th>
+            <th>CPT Code</th>
+            <th>Performed By</th>
+            <th>Performed At</th>
+            <th>Status</th>
+        </tr>
+        {% for proc in p.procedures %}
+        <tr>
+            <td>{{ proc.procedure_name }}</td>
+            <td>{{ proc.cpt_code }}</td>
+            <td>{{ proc.performed_by }}</td>
+            <td>{{ proc.performed_at }}</td>
+            <td>{{ proc.status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if p.lab_orders %}
+    <h2>Lab Orders</h2>
+    <table class="summary-table">
+        <tr>
+            <th>Test</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Ordered</th>
+        </tr>
+        {% for lab in p.lab_orders %}
+        <tr>
+            <td>{{ lab.test_name }}</td>
+            <td>{{ lab.priority }}</td>
+            <td>{{ lab.status }}</td>
+            <td>{{ lab.ordered_at }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if p.discharge_info %}
+    <div class="box">
+        <h2>Discharge Information</h2>
+        <p><strong>Disposition:</strong> {{ p.discharge_info.disposition }}</p>
+        {% if p.discharge_info.discharge_condition %}<p><strong>Condition:</strong> {{ p.discharge_info.discharge_condition }}</p>{% endif %}
+        {% if p.discharge_info.follow_up_instructions %}<p><strong>Follow-up:</strong> {{ p.discharge_info.follow_up_instructions }}</p>{% endif %}
+        {% if p.discharge_info.referred_to %}<p><strong>Referred To:</strong> {{ p.discharge_info.referred_to }}</p>{% endif %}
+    </div>
+    {% endif %}
+</body>
+</html>

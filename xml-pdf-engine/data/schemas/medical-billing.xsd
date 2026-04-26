@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:hbill="urn:his:billing:v2"
+           targetNamespace="urn:his:billing:v2"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified"
+           >
+
+    <!-- ============================================================
+       Garden of Eden: All types declared globally
+       ============================================================ -->
+
+    <!-- ── Simple Types ── -->
+
+    <xs:simpleType name="ClaimIdType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="CLM-[0-9]{4}-[0-9]{8}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="MRNRefType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="MRN-[0-9]{8}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="EncounterRefType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="ENC-[0-9]{4}-[0-9]{6}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ClaimStatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="DRAFT" />
+            <xs:enumeration value="SUBMITTED" />
+            <xs:enumeration value="PENDING_REVIEW" />
+            <xs:enumeration value="APPROVED" />
+            <xs:enumeration value="PARTIALLY_APPROVED" />
+            <xs:enumeration value="DENIED" />
+            <xs:enumeration value="APPEALED" />
+            <xs:enumeration value="PAID" />
+            <xs:enumeration value="VOID" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ClaimTypeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PROFESSIONAL" />
+            <xs:enumeration value="INSTITUTIONAL" />
+            <xs:enumeration value="DENTAL" />
+            <xs:enumeration value="VISION" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="LineItemStatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="INCLUDED" />
+            <xs:enumeration value="DENIED" />
+            <xs:enumeration value="ADJUSTED" />
+            <xs:enumeration value="BUNDLED" />
+            <xs:enumeration value="PENDING" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PaymentMethodType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="EFT" />
+            <xs:enumeration value="CHECK" />
+            <xs:enumeration value="CREDIT_CARD" />
+            <xs:enumeration value="CASH" />
+            <xs:enumeration value="WRITE_OFF" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="AdjustmentReasonType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CONTRACTUAL" />
+            <xs:enumeration value="COORDINATION_OF_BENEFITS" />
+            <xs:enumeration value="PATIENT_RESPONSIBILITY" />
+            <xs:enumeration value="WRITE_OFF" />
+            <xs:enumeration value="DISCOUNT" />
+            <xs:enumeration value="OTHER" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- ── Reusable Complex Types ── -->
+
+    <xs:complexType name="MonetaryAmountType">
+        <xs:simpleContent>
+            <xs:extension base="xs:decimal">
+                <xs:attribute name="currency"
+                              type="xs:string"
+                              default="USD"
+                              />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="BillingProviderType">
+        <xs:sequence>
+            <xs:element name="npi"
+                        type="xs:string"
+                        />
+            <xs:element name="ein"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="providerName"
+                        type="xs:string"
+                        />
+            <xs:element name="taxonomy"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="specialty"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="groupNPI"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="groupName"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="billingAddress"
+                        type="hbill:BillingAddressType"
+                        />
+            <xs:element name="serviceAddress"
+                        type="hbill:BillingAddressType"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="credentialType"
+                      type="xs:string"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="BillingAddressType">
+        <xs:sequence>
+            <xs:element name="line1"
+                        type="xs:string"
+                        />
+            <xs:element name="line2"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="city"
+                        type="xs:string"
+                        />
+            <xs:element name="state"
+                        type="xs:string"
+                        />
+            <xs:element name="zip"
+                        type="xs:string"
+                        />
+            <xs:element name="country"
+                        type="xs:string"
+                        default="US"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="InsurancePayerType">
+        <xs:sequence>
+            <xs:element name="payerId"
+                        type="xs:string"
+                        />
+            <xs:element name="payerName"
+                        type="xs:string"
+                        />
+            <xs:element name="payerType"
+                        type="xs:string"
+                        />
+            <xs:element name="memberId"
+                        type="xs:string"
+                        />
+            <xs:element name="groupNumber"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="planName"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="claimSubmissionAddress"
+                        type="hbill:BillingAddressType"
+                        minOccurs="0"
+                        />
+            <xs:element name="electronicPayerId"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="priority"
+                      type="xs:positiveInteger"
+                      use="required"
+                      />
+        <xs:attribute name="active"
+                      type="xs:boolean"
+                      default="true"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="InsurancePayerListType">
+        <xs:sequence>
+            <xs:element name="payer"
+                        type="hbill:InsurancePayerType"
+                        minOccurs="1"
+                        maxOccurs="3"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="DiagnosisPointerType">
+        <xs:sequence>
+            <xs:element name="icd10Code"
+                        type="xs:string"
+                        />
+            <xs:element name="description"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="pointer"
+                      type="xs:string"
+                      use="required"
+                      />
+        <xs:attribute name="principal"
+                      type="xs:boolean"
+                      default="false"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="DiagnosisPointerListType">
+        <xs:sequence>
+            <xs:element name="diagnosisPointer"
+                        type="hbill:DiagnosisPointerType"
+                        minOccurs="1"
+                        maxOccurs="12"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ModifierType">
+        <xs:sequence>
+            <xs:element name="code"
+                        type="xs:string"
+                        />
+            <xs:element name="description"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ServiceLineItemType">
+        <xs:sequence>
+            <xs:element name="cptCode"
+                        type="xs:string"
+                        />
+            <xs:element name="cptDescription"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="modifiers"
+                        minOccurs="0"
+                        >
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="modifier"
+                                    type="hbill:ModifierType"
+                                    minOccurs="0"
+                                    maxOccurs="4"
+                                    />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="serviceDate"
+                        type="xs:date"
+                        />
+            <xs:element name="serviceDateEnd"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="placeOfService"
+                        type="xs:string"
+                        />
+            <xs:element name="units"
+                        type="xs:decimal"
+                        />
+            <xs:element name="chargedAmount"
+                        type="hbill:MonetaryAmountType"
+                        />
+            <xs:element name="allowedAmount"
+                        type="hbill:MonetaryAmountType"
+                        minOccurs="0"
+                        />
+            <xs:element name="paidAmount"
+                        type="hbill:MonetaryAmountType"
+                        minOccurs="0"
+                        />
+            <xs:element name="diagnosisPointers"
+                        type="xs:string"
+                        />
+            <xs:element name="renderingProvider"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="revenueCode"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="denialReason"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="notes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="lineNumber"
+                      type="xs:positiveInteger"
+                      use="required"
+                      />
+        <xs:attribute name="status"
+                      type="hbill:LineItemStatusType"
+                      default="INCLUDED"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="ServiceLineListType">
+        <xs:sequence>
+            <xs:element name="serviceLineItem"
+                        type="hbill:ServiceLineItemType"
+                        minOccurs="1"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AdjustmentType">
+        <xs:sequence>
+            <xs:element name="reason"
+                        type="hbill:AdjustmentReasonType"
+                        />
+            <xs:element name="reasonCode"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="amount"
+                        type="hbill:MonetaryAmountType"
+                        />
+            <xs:element name="appliedDate"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="appliedBy"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="notes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="adjustmentId"
+                      type="xs:string"
+                      use="required"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="AdjustmentListType">
+        <xs:sequence>
+            <xs:element name="adjustment"
+                        type="hbill:AdjustmentType"
+                        minOccurs="0"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="PaymentType">
+        <xs:sequence>
+            <xs:element name="paymentDate"
+                        type="xs:date"
+                        />
+            <xs:element name="amount"
+                        type="hbill:MonetaryAmountType"
+                        />
+            <xs:element name="paymentMethod"
+                        type="hbill:PaymentMethodType"
+                        />
+            <xs:element name="referenceNumber"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="payerName"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="checkNumber"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="eraNumber"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="notes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="paymentId"
+                      type="xs:string"
+                      use="required"
+                      />
+        <xs:attribute name="postedBy"
+                      type="xs:string"
+                      />
+        <xs:attribute name="postedAt"
+                      type="xs:dateTime"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="PaymentListType">
+        <xs:sequence>
+            <xs:element name="payment"
+                        type="hbill:PaymentType"
+                        minOccurs="0"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ClaimTotalsType">
+        <xs:sequence>
+            <xs:element name="totalCharged"
+                        type="hbill:MonetaryAmountType"
+                        />
+            <xs:element name="totalAllowed"
+                        type="hbill:MonetaryAmountType"
+                        minOccurs="0"
+                        />
+            <xs:element name="totalInsurancePaid"
+                        type="hbill:MonetaryAmountType"
+                        minOccurs="0"
+                        />
+            <xs:element name="totalAdjustments"
+                        type="hbill:MonetaryAmountType"
+                        minOccurs="0"
+                        />
+            <xs:element name="totalPatientResponsibility"
+                        type="hbill:MonetaryAmountType"
+                        minOccurs="0"
+                        />
+            <xs:element name="totalPatientPaid"
+                        type="hbill:MonetaryAmountType"
+                        minOccurs="0"
+                        />
+            <xs:element name="balanceDue"
+                        type="hbill:MonetaryAmountType"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AppealType">
+        <xs:sequence>
+            <xs:element name="appealDate"
+                        type="xs:date"
+                        />
+            <xs:element name="appealReason"
+                        type="xs:string"
+                        />
+            <xs:element name="submittedBy"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="supportingDocs"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="resolutionDate"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="resolutionNotes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="appealId"
+                      type="xs:string"
+                      use="required"
+                      />
+        <xs:attribute name="appealStatus"
+                      type="xs:string"
+                      default="PENDING"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="AppealListType">
+        <xs:sequence>
+            <xs:element name="appeal"
+                        type="hbill:AppealType"
+                        minOccurs="0"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="MedicalClaimType">
+        <xs:sequence>
+            <xs:element name="claimType"
+                        type="hbill:ClaimTypeType"
+                        />
+            <xs:element name="serviceStartDate"
+                        type="xs:date"
+                        />
+            <xs:element name="serviceEndDate"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="submissionDate"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="billingProvider"
+                        type="hbill:BillingProviderType"
+                        />
+            <xs:element name="payers"
+                        type="hbill:InsurancePayerListType"
+                        />
+            <xs:element name="diagnosisPointers"
+                        type="hbill:DiagnosisPointerListType"
+                        />
+            <xs:element name="serviceLines"
+                        type="hbill:ServiceLineListType"
+                        />
+            <xs:element name="adjustments"
+                        type="hbill:AdjustmentListType"
+                        minOccurs="0"
+                        />
+            <xs:element name="payments"
+                        type="hbill:PaymentListType"
+                        minOccurs="0"
+                        />
+            <xs:element name="totals"
+                        type="hbill:ClaimTotalsType"
+                        />
+            <xs:element name="appeals"
+                        type="hbill:AppealListType"
+                        minOccurs="0"
+                        />
+            <xs:element name="priorAuthNumber"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="referralNumber"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="internalNotes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="claimId"
+                      type="hbill:ClaimIdType"
+                      use="required"
+                      />
+        <xs:attribute name="patientMRN"
+                      type="hbill:MRNRefType"
+                      use="required"
+                      />
+        <xs:attribute name="encounterId"
+                      type="hbill:EncounterRefType"
+                      use="required"
+                      />
+        <xs:attribute name="status"
+                      type="hbill:ClaimStatusType"
+                      default="DRAFT"
+                      />
+        <xs:attribute name="version"
+                      type="xs:positiveInteger"
+                      default="1"
+                      />
+        <xs:attribute name="electronicClaim"
+                      type="xs:boolean"
+                      default="true"
+                      />
+    </xs:complexType>
+
+    <!-- ── Root Element ── -->
+    <xs:element name="MedicalClaim"
+                type="hbill:MedicalClaimType"
+                />
+
+</xs:schema>

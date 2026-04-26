@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XML to PDF Engine - Document Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a202c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: block;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .file-input-label:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+            color: #667eea;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .schema-section {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 28px;
+        }
+
+        .schema-section h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #2d3748;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e0;
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        .toggle-status {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select {
+            width: 100%;
+            padding: 13px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            background: linear-gradient(white, white) padding-box, linear-gradient(135deg, #667eea 0%, #764ba2 100%) border-box;
+            color: #2d3748;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+            padding-right: 38px;
+        }
+
+        select:hover {
+            border-color: #cbd5e0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
+        }
+
+        select:focus {
+            outline: none;
+            border: 2px solid #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        select option {
+            padding: 10px;
+            background: white;
+            color: #2d3748;
+        }
+
+        select option:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        #schemaDropdown {
+            display: none;
+        }
+
+        #templateSection {
+            margin-bottom: 28px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #actionArea {
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .detected-schema {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .schema-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .status.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .status.loading {
+            background: #feebc8;
+            color: #7c2d12;
+            border: 1px solid #fbd38d;
+        }
+
+        .status-icon {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status.success .status-icon {
+            background: #22543d;
+        }
+
+        .status.error .status-icon {
+            background: #742a2a;
+        }
+
+        .status.loading .status-icon {
+            background: #7c2d12;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .file-info-section {
+            background: #edf2f7;
+            border: 1px solid #cbd5e0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .file-info-section.show {
+            display: block;
+        }
+
+        .file-info-item {
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .file-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-info-label {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .file-info-value {
+            color: #4a5568;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #718096;
+            background: #f7fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                border-radius: 12px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .toggle-container {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📄 XML to PDF</h1>
+            <p>Convert healthcare XML documents to professional PDF reports</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- File Upload -->
+            <div class="form-group">
+                <label class="form-label">Upload XML Document</label>
+                <div class="file-input-wrapper">
+                    <label class="file-input-label">
+                        <span>📁 Choose XML File or Drag & Drop</span>
+                        <input type="file" id="fileInput" accept=".xml">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Schema Selection -->
+            <div class="schema-section">
+                <h3>📋 Schema Detection</h3>
+                
+                <div class="toggle-container">
+                    <span class="toggle-label">Auto-Detect</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoDetectToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-status" id="detectStatus">ON</span>
+                </div>
+                
+                <div id="schemaDropdown" style="display: none;">
+                    <label for="schemaSelect" style="display: block; font-weight: 600; margin-bottom: 8px; color: #2d3748; font-size: 13px;">Select Schema:</label>
+                    <select id="schemaSelect">
+                        <option value="">-- Choose a schema --</option>
+                        <option value="PATIENT">👤 Patient Records</option>
+                        <option value="ENCOUNTER">🏥 Encounter Data</option>
+                        <option value="BILLING">💳 Billing Information</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Uploaded File Info -->
+            <div id="fileInfoSection" class="file-info-section">
+                <div class="file-info-item">
+                    <div class="file-info-label">📄 Uploaded File</div>
+                    <div class="file-info-value" id="uploadedFilename"></div>
+                </div>
+            </div>
+
+            <!-- Action Area -->
+            <div id="actionArea">
+                <div class="detected-schema">
+                    <span id="schemaStatusLabel">✓ Schema Detected</span>
+                    <span class="schema-badge" id="schemaLabel"></span>
+                </div>
+
+                <div id="templateSection" style="display: none;">
+                    <label class="form-label">Select Template</label>
+                    <select id="templateSelect"></select>
+                </div>
+                
+                <div class="schema-section">
+                    <h3>⚙️ PDF Options</h3>
+                    <div class="toggle-container">
+                        <span class="toggle-label">Display Mode</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="viewToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-status" id="toggleStatus">View</span>
+                    </div>
+                </div>
+                
+                <button id="generateBtn" onclick="generate()">🚀 Generate PDF</button>
+            </div>
+
+            <!-- Status Messages -->
+            <div id="status"></div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            Healthcare XML to PDF Conversion Engine v1.0
+        </div>
+    </div>
+
+    <script>
+        let currentFilename = "";
+        let currentSchema = "";
+        let useAutoDetect = true;
+        let currentRequestId = ""; 
+        //let templateName = "";
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            const iconMap = { success: '✓', error: '✕', loading: '⟳' };
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = `<span class="status-icon"></span><span>${message}</span>`;
+        }
+
+        // Toggle auto-detect mode
+        document.getElementById('autoDetectToggle').addEventListener('change', function() {
+            useAutoDetect = this.checked;
+            document.getElementById('detectStatus').innerText = useAutoDetect ? 'ON' : 'OFF';
+            document.getElementById('schemaDropdown').style.display = useAutoDetect ? 'none' : 'block';
+            document.getElementById('schemaSelect').value = '';
+            document.getElementById('schemaStatusLabel').innerText = useAutoDetect ? '✓ Schema Detected' : '✓ Schema Selected';
+        });
+
+        // Update toggle status label for view mode
+        document.getElementById('viewToggle').addEventListener('change', function() {
+            document.getElementById('toggleStatus').innerText = this.checked ? 'View' : 'Download';
+        });
+
+        document.getElementById('fileInput').onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            let formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                showStatus('Uploading file...', 'loading');
+                let res = await fetch("/upload", {method: "POST", body: formData});
+                if (!res.ok) throw new Error("Upload failed");
+
+                let data = await res.json();
+                currentFilename = data.filename;
+                currentRequestId = data.request_id;
+
+                // Display file info
+                const fileInfoSection = document.getElementById('fileInfoSection');
+                document.getElementById('uploadedFilename').innerText = currentFilename;
+                fileInfoSection.classList.add('show');
+
+                if (useAutoDetect) {
+                    currentSchema = data.detected_schema;
+
+                    if (!currentSchema) {
+                        showStatus('Schema not recognized. Please select manually.', 'error');
+                        useAutoDetect = false;
+                        document.getElementById('autoDetectToggle').checked = false;
+                        document.getElementById('detectStatus').innerText = 'OFF';
+                        document.getElementById('schemaDropdown').style.display = 'block';
+                        return;
+                    }
+
+                    document.getElementById('schemaLabel').innerText = currentSchema;
+                    document.getElementById('actionArea').style.display = 'block';
+                    showStatus('Schema detected successfully!', 'success');
+
+                    let tempRes = await fetch(`/templates/${currentSchema}`);
+                    let tempData = await tempRes.json();
+
+                    const templateSelect = document.getElementById('templateSelect');
+                    templateSelect.innerHTML = ''; // Clear previous
+
+                    tempData.templates.forEach(t => {
+                        let opt = document.createElement('option');
+                        opt.value = t;
+                        opt.innerHTML = t;
+                        templateSelect.appendChild(opt);
+                    });
+
+                    document.getElementById('templateSection').style.display = 'block';
+                } else {
+                    showStatus('Please select a schema from the dropdown', 'loading');
+                }
+            } catch (err) {
+                showStatus(`Error: ${err.message}`, 'error');
+            }
+        };
+
+        // Handle manual schema selection
+        document.getElementById('schemaSelect').addEventListener('change', async function() {
+            const selectedSchema = this.value;
+            if (selectedSchema) {
+                currentSchema = selectedSchema;
+                document.getElementById('schemaLabel').innerText = selectedSchema;
+                document.getElementById('schemaStatusLabel').innerText = '✓ Schema Selected';
+                document.getElementById('actionArea').style.display = 'block';
+                showStatus(`Schema set to: ${selectedSchema}`, 'success');
+
+                // Load templates for the selected schema
+                try {
+                    let tempRes = await fetch(`/templates/${selectedSchema}`);
+                    let tempData = await tempRes.json();
+
+                    const templateSelect = document.getElementById('templateSelect');
+                    templateSelect.innerHTML = ''; // Clear previous
+
+                    tempData.templates.forEach(t => {
+                        let opt = document.createElement('option');
+                        opt.value = t;
+                        opt.innerHTML = t;
+                        templateSelect.appendChild(opt);
+                    });
+
+                    document.getElementById('templateSection').style.display = 'block';
+                } catch (err) {
+                    showStatus(`Error loading templates: ${err.message}`, 'error');
+                }
+            } else {
+                document.getElementById('actionArea').style.display = 'none';
+                showStatus('Please select a schema', 'loading');
+            }
+        });
+
+        async function generate() {
+            const btn = document.getElementById('generateBtn');
+            const isViewMode = document.getElementById('viewToggle').checked;
+            btn.disabled = true;
+            showStatus('Generating PDF...', 'loading');
+            
+            let formData = new FormData();
+            formData.append("filename", currentFilename);
+            formData.append("schema", currentSchema);
+            formData.append("request_id", currentRequestId);
+            formData.append("template_name", document.getElementById('templateSelect').value);
+            
+            try {
+                console.log(formData.get("filename"), formData.get("schema"), formData.get("request_id"));
+                let res = await fetch("/generate", {method: "POST", body: formData});
+                if (!res.ok) throw new Error("PDF generation failed");
+                
+                let blob = await res.blob();
+                let url = window.URL.createObjectURL(blob);
+                
+                if (isViewMode) {
+                    window.open(url, '_blank');
+                    showStatus('PDF opened in new tab!', 'success');
+                } else {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${currentFilename.split('.')[0]}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showStatus('PDF downloaded successfully!', 'success');
+                }
+                
+                setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            } catch (err) {
+                showStatus(`Error: ${err.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

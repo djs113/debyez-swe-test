@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; font-size: 12px; line-height: 1.4; color: #333; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 5px; }
+        h2 { background: #f4f4f4; padding: 6px; margin-top: 20px; border-left: 4px solid #2c3e50; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+        th { background: #eee; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .note-box { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; background: #fafafa; }
+    </style>
+</head>
+<body>
+    <h1>Encounter: {{ p.encounter_id }}</h1>
+    <p><strong>Status:</strong> {{ p.status }} | <strong>Type:</strong> {{ p.encounter_type }} | <strong>Facility:</strong> {{ p.facility }}</p>
+
+    <div class="grid">
+        <div>
+            <h2>Admission Details</h2>
+            <p><strong>Chief Complaint:</strong> {{ p.chief_complaint }}<br>
+               <strong>Admission Time:</strong> {{ p.admission_date_time }}<br>
+               <strong>Room:</strong> {{ p.room or 'N/A' }}</p>
+        </div>
+        <div>
+            <h2>Providers</h2>
+            {% for prov in p.providers %}
+            <p><strong>{{ prov.provider_name }}</strong> ({{ prov.role }})<br>
+               {{ prov.specialty }} - NPI: {{ prov.npi_number or 'N/A' }}</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <h2>Diagnoses</h2>
+    <table>
+        <tr><th>Code</th><th>Description</th><th>Status</th><th>Diagnosed By</th></tr>
+        {% for dx in p.diagnoses %}
+        <tr>
+            <td>{{ dx.icd10_code.code }}</td>
+            <td>{{ dx.icd10_code.description }}</td>
+            <td>{{ dx.confirmation_status }}</td>
+            <td>{{ dx.diagnosed_by or 'N/A' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No diagnoses recorded.</td></tr>
+        {% endfor %}
+    </table>
+
+    <h2>Procedures Performed</h2>
+    <table>
+        <tr><th>Procedure</th><th>Performed By</th><th>Date</th><th>Outcome</th></tr>
+        {% for proc in p.procedures %}
+        <tr>
+            <td>{{ proc.procedure_name }}</td>
+            <td>{{ proc.performed_by }}</td>
+            <td>{{ proc.performed_at }}</td>
+            <td>{{ proc.outcome or 'N/A' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No procedures recorded.</td></tr>
+        {% endfor %}
+    </table>
+
+    <h2>Clinical Notes</h2>
+    {% for note in p.clinical_notes %}
+        <div class="note-box">
+            <strong>{{ note.note_type }}</strong> by {{ note.author_name }} on {{ note.created_at }}<br>
+            <p>{{ note.content }}</p>
+        </div>
+    {% else %}
+        <p>No clinical notes available.</p>
+    {% endfor %}
+
+    {% if p.discharge_info %}
+    <h2>Discharge Information</h2>
+    <p><strong>Disposition:</strong> {{ p.discharge_info.disposition }}<br>
+       <strong>Discharge Condition:</strong> {{ p.discharge_info.discharge_condition or 'N/A' }}<br>
+       <strong>Follow-up Instructions:</strong> {{ p.discharge_info.follow_up_instructions or 'N/A' }}</p>
+    {% endif %}
+</body>
+</html>

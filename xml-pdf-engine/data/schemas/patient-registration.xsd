@@ -1,15 +1,531 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:element name="Patient">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element name="ID" type="xs:string"/>
-        <xs:element name="FirstName" type="xs:string"/>
-        <xs:element name="LastName" type="xs:string"/>
-        <xs:element name="DateOfBirth" type="xs:date"/>
-        <xs:element name="Gender" type="xs:string"/>
-        <xs:element name="RegistrationDate" type="xs:dateTime"/>
-      </xs:sequence>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:his="urn:his:patient:v2"
+           targetNamespace="urn:his:patient:v2"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified"
+           >
+
+    <!-- ============================================================
+       Garden of Eden: All types declared globally at schema level
+       ============================================================ -->
+
+    <!-- ── Primitive / Simple Types ── -->
+
+    <xs:simpleType name="MRNType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="MRN-[0-9]{8}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="InsurancePolicyNumberType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="6" />
+            <xs:maxLength value="30" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="GenderCodeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="M" />
+            <xs:enumeration value="F" />
+            <xs:enumeration value="O" />
+            <xs:enumeration value="U" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="BloodGroupType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="A+" />
+            <xs:enumeration value="A-" />
+            <xs:enumeration value="B+" />
+            <xs:enumeration value="B-" />
+            <xs:enumeration value="AB+" />
+            <xs:enumeration value="AB-" />
+            <xs:enumeration value="O+" />
+            <xs:enumeration value="O-" />
+            <xs:enumeration value="UNKNOWN" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="MaritalStatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="SINGLE" />
+            <xs:enumeration value="MARRIED" />
+            <xs:enumeration value="DIVORCED" />
+            <xs:enumeration value="WIDOWED" />
+            <xs:enumeration value="SEPARATED" />
+            <xs:enumeration value="UNKNOWN" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="RelationshipCodeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="SPOUSE" />
+            <xs:enumeration value="PARENT" />
+            <xs:enumeration value="CHILD" />
+            <xs:enumeration value="SIBLING" />
+            <xs:enumeration value="GUARDIAN" />
+            <xs:enumeration value="OTHER" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="InsuranceTypeCodeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PRIMARY" />
+            <xs:enumeration value="SECONDARY" />
+            <xs:enumeration value="TERTIARY" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ContactMethodType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="HOME" />
+            <xs:enumeration value="WORK" />
+            <xs:enumeration value="MOBILE" />
+            <xs:enumeration value="EMAIL" />
+            <xs:enumeration value="FAX" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="RegistrationStatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ACTIVE" />
+            <xs:enumeration value="INACTIVE" />
+            <xs:enumeration value="DECEASED" />
+            <xs:enumeration value="TRANSFERRED" />
+            <xs:enumeration value="PENDING_VERIFICATION" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- ── Reusable Complex Types ── -->
+
+    <xs:complexType name="AddressType">
+        <xs:sequence>
+            <xs:element name="streetLine1"
+                        type="xs:string"
+                        />
+            <xs:element name="streetLine2"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="city"
+                        type="xs:string"
+                        />
+            <xs:element name="stateProvince"
+                        type="xs:string"
+                        />
+            <xs:element name="postalCode"
+                        type="xs:string"
+                        />
+            <xs:element name="countryCode"
+                        type="xs:string"
+                        />
+            <xs:element name="addressType"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="effectiveFrom"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="effectiveTo"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="preferred"
+                      type="xs:boolean"
+                      default="false"
+                      />
     </xs:complexType>
-  </xs:element>
+
+    <xs:complexType name="ContactMethodDetailType">
+        <xs:sequence>
+            <xs:element name="method"
+                        type="his:ContactMethodType"
+                        />
+            <xs:element name="value"
+                        type="xs:string"
+                        />
+            <xs:element name="note"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="preferred"
+                      type="xs:boolean"
+                      default="false"
+                      />
+        <xs:attribute name="active"
+                      type="xs:boolean"
+                      default="true"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="ContactInfoType">
+        <xs:sequence>
+            <xs:element name="addresses"
+                        type="his:AddressListType"
+                        />
+            <xs:element name="contactMethods"
+                        type="his:ContactMethodListType"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AddressListType">
+        <xs:sequence>
+            <xs:element name="address"
+                        type="his:AddressType"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ContactMethodListType">
+        <xs:sequence>
+            <xs:element name="contactMethod"
+                        type="his:ContactMethodDetailType"
+                        minOccurs="1"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="PersonNameType">
+        <xs:sequence>
+            <xs:element name="prefix"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="firstName"
+                        type="xs:string"
+                        />
+            <xs:element name="middleName"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="lastName"
+                        type="xs:string"
+                        />
+            <xs:element name="suffix"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="preferredName"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="nameUse"
+                      type="xs:string"
+                      default="LEGAL"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="EmergencyContactType">
+        <xs:sequence>
+            <xs:element name="name"
+                        type="his:PersonNameType"
+                        />
+            <xs:element name="relationship"
+                        type="his:RelationshipCodeType"
+                        />
+            <xs:element name="contactInfo"
+                        type="his:ContactInfoType"
+                        />
+            <xs:element name="note"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="priority"
+                      type="xs:positiveInteger"
+                      use="required"
+                      />
+        <xs:attribute name="legalGuardian"
+                      type="xs:boolean"
+                      default="false"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="EmergencyContactListType">
+        <xs:sequence>
+            <xs:element name="emergencyContact"
+                        type="his:EmergencyContactType"
+                        minOccurs="1"
+                        maxOccurs="10"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="InsurancePlanType">
+        <xs:sequence>
+            <xs:element name="insurerName"
+                        type="xs:string"
+                        />
+            <xs:element name="planName"
+                        type="xs:string"
+                        />
+            <xs:element name="policyNumber"
+                        type="his:InsurancePolicyNumberType"
+                        />
+            <xs:element name="groupNumber"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="memberId"
+                        type="xs:string"
+                        />
+            <xs:element name="subscriberName"
+                        type="his:PersonNameType"
+                        minOccurs="0"
+                        />
+            <xs:element name="subscriberDOB"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="relationshipToPatient"
+                        type="his:RelationshipCodeType"
+                        minOccurs="0"
+                        />
+            <xs:element name="effectiveDate"
+                        type="xs:date"
+                        />
+            <xs:element name="terminationDate"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="copayAmount"
+                        type="xs:decimal"
+                        minOccurs="0"
+                        />
+            <xs:element name="deductibleAmount"
+                        type="xs:decimal"
+                        minOccurs="0"
+                        />
+            <xs:element name="verificationStatus"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="verifiedDate"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="preAuthRequired"
+                        type="xs:boolean"
+                        minOccurs="0"
+                        />
+            <xs:element name="notes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="insuranceType"
+                      type="his:InsuranceTypeCodeType"
+                      use="required"
+                      />
+        <xs:attribute name="active"
+                      type="xs:boolean"
+                      default="true"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="InsuranceListType">
+        <xs:sequence>
+            <xs:element name="insurancePlan"
+                        type="his:InsurancePlanType"
+                        minOccurs="0"
+                        maxOccurs="3"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AllergyType">
+        <xs:sequence>
+            <xs:element name="allergen"
+                        type="xs:string"
+                        />
+            <xs:element name="allergenType"
+                        type="xs:string"
+                        />
+            <xs:element name="severity"
+                        type="xs:string"
+                        />
+            <xs:element name="reaction"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="onsetDate"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="verifiedBy"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="status"
+                      type="xs:string"
+                      default="ACTIVE"
+                      />
+        <xs:attribute name="recorded"
+                      type="xs:dateTime"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="AllergyListType">
+        <xs:sequence>
+            <xs:element name="allergy"
+                        type="his:AllergyType"
+                        minOccurs="0"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="PatientDemographicsType">
+        <xs:sequence>
+            <xs:element name="name"
+                        type="his:PersonNameType"
+                        />
+            <xs:element name="dateOfBirth"
+                        type="xs:date"
+                        />
+            <xs:element name="gender"
+                        type="his:GenderCodeType"
+                        />
+            <xs:element name="bloodGroup"
+                        type="his:BloodGroupType"
+                        minOccurs="0"
+                        />
+            <xs:element name="maritalStatus"
+                        type="his:MaritalStatusType"
+                        minOccurs="0"
+                        />
+            <xs:element name="nationality"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="ethnicity"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="primaryLanguage"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="interpreterRequired"
+                        type="xs:boolean"
+                        minOccurs="0"
+                        />
+            <xs:element name="religion"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="occupation"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="RegistrationMetadataType">
+        <xs:sequence>
+            <xs:element name="registrationDate"
+                        type="xs:dateTime"
+                        />
+            <xs:element name="registrationFacility"
+                        type="xs:string"
+                        />
+            <xs:element name="registeredBy"
+                        type="xs:string"
+                        />
+            <xs:element name="lastUpdated"
+                        type="xs:dateTime"
+                        minOccurs="0"
+                        />
+            <xs:element name="lastUpdatedBy"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="sourceSystem"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="externalIds"
+                        type="his:ExternalIdListType"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ExternalIdType">
+        <xs:sequence>
+            <xs:element name="idType"
+                        type="xs:string"
+                        />
+            <xs:element name="idValue"
+                        type="xs:string"
+                        />
+            <xs:element name="issuer"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ExternalIdListType">
+        <xs:sequence>
+            <xs:element name="externalId"
+                        type="his:ExternalIdType"
+                        minOccurs="0"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="PatientRecordType">
+        <xs:sequence>
+            <xs:element name="demographics"
+                        type="his:PatientDemographicsType"
+                        />
+            <xs:element name="contactInfo"
+                        type="his:ContactInfoType"
+                        />
+            <xs:element name="emergencyContacts"
+                        type="his:EmergencyContactListType"
+                        />
+            <xs:element name="insurancePlans"
+                        type="his:InsuranceListType"
+                        minOccurs="0"
+                        />
+            <xs:element name="allergies"
+                        type="his:AllergyListType"
+                        minOccurs="0"
+                        />
+            <xs:element name="registrationMetadata"
+                        type="his:RegistrationMetadataType"
+                        />
+        </xs:sequence>
+        <xs:attribute name="mrn"
+                      type="his:MRNType"
+                      use="required"
+                      />
+        <xs:attribute name="status"
+                      type="his:RegistrationStatusType"
+                      default="ACTIVE"
+                      />
+        <xs:attribute name="version"
+                      type="xs:positiveInteger"
+                      default="1"
+                      />
+    </xs:complexType>
+
+    <!-- ── Root Element ── -->
+    <xs:element name="PatientRecord"
+                type="his:PatientRecordType"
+                />
+
 </xs:schema>

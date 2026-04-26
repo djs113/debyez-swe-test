@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:hce="urn:his:encounter:v2"
+           targetNamespace="urn:his:encounter:v2"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified"
+           >
+
+    <!-- ============================================================
+       Garden of Eden: All types declared globally
+       ============================================================ -->
+
+    <!-- ── Simple Types ── -->
+
+    <xs:simpleType name="EncounterIdType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="ENC-[0-9]{4}-[0-9]{6}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="MRNRefType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="MRN-[0-9]{8}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="EncounterTypeCodeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="OUTPATIENT" />
+            <xs:enumeration value="INPATIENT" />
+            <xs:enumeration value="EMERGENCY" />
+            <xs:enumeration value="OBSERVATION" />
+            <xs:enumeration value="TELEHEALTH" />
+            <xs:enumeration value="DAY_SURGERY" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="EncounterStatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="SCHEDULED" />
+            <xs:enumeration value="IN_PROGRESS" />
+            <xs:enumeration value="COMPLETED" />
+            <xs:enumeration value="CANCELLED" />
+            <xs:enumeration value="NO_SHOW" />
+            <xs:enumeration value="TRANSFERRED" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="VitalSignCodeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="HEART_RATE" />
+            <xs:enumeration value="BLOOD_PRESSURE_SYSTOLIC" />
+            <xs:enumeration value="BLOOD_PRESSURE_DIASTOLIC" />
+            <xs:enumeration value="RESPIRATORY_RATE" />
+            <xs:enumeration value="TEMPERATURE" />
+            <xs:enumeration value="O2_SATURATION" />
+            <xs:enumeration value="HEIGHT" />
+            <xs:enumeration value="WEIGHT" />
+            <xs:enumeration value="BMI" />
+            <xs:enumeration value="PAIN_SCALE" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="DiagnosisConfirmationStatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CONFIRMED" />
+            <xs:enumeration value="DIFFERENTIAL" />
+            <xs:enumeration value="RULE_OUT" />
+            <xs:enumeration value="HISTORY_OF" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="OrderStatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PENDING" />
+            <xs:enumeration value="IN_PROGRESS" />
+            <xs:enumeration value="COMPLETED" />
+            <xs:enumeration value="CANCELLED" />
+            <xs:enumeration value="ON_HOLD" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ProcedureStatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PLANNED" />
+            <xs:enumeration value="PERFORMED" />
+            <xs:enumeration value="ABORTED" />
+            <xs:enumeration value="SUSPENDED" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="DispositionCodeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="DISCHARGED_HOME" />
+            <xs:enumeration value="ADMITTED" />
+            <xs:enumeration value="TRANSFERRED" />
+            <xs:enumeration value="EXPIRED" />
+            <xs:enumeration value="AMA" />
+            <xs:enumeration value="REFERRED" />
+            <xs:enumeration value="OBSERVATION" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- ── Reusable Complex Types ── -->
+
+    <xs:complexType name="ProviderReferenceType">
+        <xs:sequence>
+            <xs:element name="providerId"
+                        type="xs:string"
+                        />
+            <xs:element name="providerName"
+                        type="xs:string"
+                        />
+            <xs:element name="specialty"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="npiNumber"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="department"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="role"
+                      type="xs:string"
+                      use="required"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="ProviderListType">
+        <xs:sequence>
+            <xs:element name="provider"
+                        type="hce:ProviderReferenceType"
+                        minOccurs="1"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="VitalSignObservationType">
+        <xs:sequence>
+            <xs:element name="code"
+                        type="hce:VitalSignCodeType"
+                        />
+            <xs:element name="value"
+                        type="xs:decimal"
+                        />
+            <xs:element name="unit"
+                        type="xs:string"
+                        />
+            <xs:element name="referenceRangeLow"
+                        type="xs:decimal"
+                        minOccurs="0"
+                        />
+            <xs:element name="referenceRangeHigh"
+                        type="xs:decimal"
+                        minOccurs="0"
+                        />
+            <xs:element name="interpretation"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="methodNote"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="recordedAt"
+                      type="xs:dateTime"
+                      use="required"
+                      />
+        <xs:attribute name="recordedBy"
+                      type="xs:string"
+                      />
+        <xs:attribute name="abnormal"
+                      type="xs:boolean"
+                      default="false"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="VitalsSetType">
+        <xs:sequence>
+            <xs:element name="vitalSign"
+                        type="hce:VitalSignObservationType"
+                        minOccurs="1"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+        <xs:attribute name="setId"
+                      type="xs:string"
+                      use="required"
+                      />
+        <xs:attribute name="capturedAt"
+                      type="xs:dateTime"
+                      use="required"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="VitalsHistoryType">
+        <xs:sequence>
+            <xs:element name="vitalsSet"
+                        type="hce:VitalsSetType"
+                        minOccurs="0"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ICD10CodeType">
+        <xs:sequence>
+            <xs:element name="code"
+                        type="xs:string"
+                        />
+            <xs:element name="description"
+                        type="xs:string"
+                        />
+            <xs:element name="codeSystem"
+                        type="xs:string"
+                        default="ICD-10-CM"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="DiagnosisType">
+        <xs:sequence>
+            <xs:element name="icd10Code"
+                        type="hce:ICD10CodeType"
+                        />
+            <xs:element name="clinicalDescription"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="onsetDate"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="resolvedDate"
+                        type="xs:date"
+                        minOccurs="0"
+                        />
+            <xs:element name="confirmationStatus"
+                        type="hce:DiagnosisConfirmationStatusType"
+                        />
+            <xs:element name="diagnosedBy"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="notes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="diagnosisId"
+                      type="xs:string"
+                      use="required"
+                      />
+        <xs:attribute name="primary"
+                      type="xs:boolean"
+                      default="false"
+                      />
+        <xs:attribute name="rank"
+                      type="xs:positiveInteger"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="DiagnosisListType">
+        <xs:sequence>
+            <xs:element name="diagnosis"
+                        type="hce:DiagnosisType"
+                        minOccurs="0"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="MedicationOrderType">
+        <xs:sequence>
+            <xs:element name="medicationName"
+                        type="xs:string"
+                        />
+            <xs:element name="genericName"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="rxNormCode"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="dosage"
+                        type="xs:string"
+                        />
+            <xs:element name="route"
+                        type="xs:string"
+                        />
+            <xs:element name="frequency"
+                        type="xs:string"
+                        />
+            <xs:element name="duration"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="quantity"
+                        type="xs:decimal"
+                        minOccurs="0"
+                        />
+            <xs:element name="refills"
+                        type="xs:integer"
+                        minOccurs="0"
+                        />
+            <xs:element name="instructions"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="orderedBy"
+                        type="xs:string"
+                        />
+            <xs:element name="orderedAt"
+                        type="xs:dateTime"
+                        />
+            <xs:element name="pharmacyNotes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="linkedDiagnosisId"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="orderId"
+                      type="xs:string"
+                      use="required"
+                      />
+        <xs:attribute name="status"
+                      type="hce:OrderStatusType"
+                      default="PENDING"
+                      />
+        <xs:attribute name="controlled"
+                      type="xs:boolean"
+                      default="false"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="LabOrderType">
+        <xs:sequence>
+            <xs:element name="testName"
+                        type="xs:string"
+                        />
+            <xs:element name="loincCode"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="priority"
+                        type="xs:string"
+                        default="ROUTINE"
+                        />
+            <xs:element name="collectionMethod"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="specimenType"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="orderedBy"
+                        type="xs:string"
+                        />
+            <xs:element name="orderedAt"
+                        type="xs:dateTime"
+                        />
+            <xs:element name="scheduledAt"
+                        type="xs:dateTime"
+                        minOccurs="0"
+                        />
+            <xs:element name="completedAt"
+                        type="xs:dateTime"
+                        minOccurs="0"
+                        />
+            <xs:element name="resultSummary"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="abnormalFlags"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="linkedDiagnosisId"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="notes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="orderId"
+                      type="xs:string"
+                      use="required"
+                      />
+        <xs:attribute name="status"
+                      type="hce:OrderStatusType"
+                      default="PENDING"
+                      />
+        <xs:attribute name="stat"
+                      type="xs:boolean"
+                      default="false"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="OrderSetType">
+        <xs:sequence>
+            <xs:element name="medicationOrders"
+                        minOccurs="0"
+                        >
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="medicationOrder"
+                                    type="hce:MedicationOrderType"
+                                    minOccurs="0"
+                                    maxOccurs="unbounded"
+                                    />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="labOrders"
+                        minOccurs="0"
+                        >
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="labOrder"
+                                    type="hce:LabOrderType"
+                                    minOccurs="0"
+                                    maxOccurs="unbounded"
+                                    />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ProcedureType">
+        <xs:sequence>
+            <xs:element name="procedureName"
+                        type="xs:string"
+                        />
+            <xs:element name="cptCode"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="description"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="performedBy"
+                        type="xs:string"
+                        />
+            <xs:element name="performedAt"
+                        type="xs:dateTime"
+                        />
+            <xs:element name="durationMinutes"
+                        type="xs:integer"
+                        minOccurs="0"
+                        />
+            <xs:element name="anesthesiaType"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="complications"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="outcome"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="linkedDiagnosisId"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="notes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="procedureId"
+                      type="xs:string"
+                      use="required"
+                      />
+        <xs:attribute name="status"
+                      type="hce:ProcedureStatusType"
+                      default="PERFORMED"
+                      />
+        <xs:attribute name="billable"
+                      type="xs:boolean"
+                      default="true"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="ProcedureListType">
+        <xs:sequence>
+            <xs:element name="procedure"
+                        type="hce:ProcedureType"
+                        minOccurs="0"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ClinicalNoteType">
+        <xs:sequence>
+            <xs:element name="noteType"
+                        type="xs:string"
+                        />
+            <xs:element name="authorId"
+                        type="xs:string"
+                        />
+            <xs:element name="authorName"
+                        type="xs:string"
+                        />
+            <xs:element name="createdAt"
+                        type="xs:dateTime"
+                        />
+            <xs:element name="lastAmendedAt"
+                        type="xs:dateTime"
+                        minOccurs="0"
+                        />
+            <xs:element name="content"
+                        type="xs:string"
+                        />
+            <xs:element name="tags"
+                        type="hce:TagListType"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="noteId"
+                      type="xs:string"
+                      use="required"
+                      />
+        <xs:attribute name="signed"
+                      type="xs:boolean"
+                      default="false"
+                      />
+        <xs:attribute name="locked"
+                      type="xs:boolean"
+                      default="false"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="TagListType">
+        <xs:sequence>
+            <xs:element name="tag"
+                        type="xs:string"
+                        minOccurs="0"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ClinicalNoteListType">
+        <xs:sequence>
+            <xs:element name="clinicalNote"
+                        type="hce:ClinicalNoteType"
+                        minOccurs="0"
+                        maxOccurs="unbounded"
+                        />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="DischargeInfoType">
+        <xs:sequence>
+            <xs:element name="disposition"
+                        type="hce:DispositionCodeType"
+                        />
+            <xs:element name="dischargeDateTime"
+                        type="xs:dateTime"
+                        minOccurs="0"
+                        />
+            <xs:element name="dischargeCondition"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="followUpInstructions"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="followUpAppointment"
+                        type="xs:dateTime"
+                        minOccurs="0"
+                        />
+            <xs:element name="referredTo"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="dischargeNotes"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="dischargedBy"
+                      type="xs:string"
+                      />
+    </xs:complexType>
+
+    <xs:complexType name="EncounterType">
+        <xs:sequence>
+            <xs:element name="encounterType"
+                        type="hce:EncounterTypeCodeType"
+                        />
+            <xs:element name="admissionDateTime"
+                        type="xs:dateTime"
+                        />
+            <xs:element name="dischargeDateTime"
+                        type="xs:dateTime"
+                        minOccurs="0"
+                        />
+            <xs:element name="chiefComplaint"
+                        type="xs:string"
+                        />
+            <xs:element name="facility"
+                        type="xs:string"
+                        />
+            <xs:element name="department"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="room"
+                        type="xs:string"
+                        minOccurs="0"
+                        />
+            <xs:element name="providers"
+                        type="hce:ProviderListType"
+                        />
+            <xs:element name="vitalsHistory"
+                        type="hce:VitalsHistoryType"
+                        minOccurs="0"
+                        />
+            <xs:element name="diagnoses"
+                        type="hce:DiagnosisListType"
+                        minOccurs="0"
+                        />
+            <xs:element name="orders"
+                        type="hce:OrderSetType"
+                        minOccurs="0"
+                        />
+            <xs:element name="procedures"
+                        type="hce:ProcedureListType"
+                        minOccurs="0"
+                        />
+            <xs:element name="clinicalNotes"
+                        type="hce:ClinicalNoteListType"
+                        minOccurs="0"
+                        />
+            <xs:element name="dischargeInfo"
+                        type="hce:DischargeInfoType"
+                        minOccurs="0"
+                        />
+        </xs:sequence>
+        <xs:attribute name="encounterId"
+                      type="hce:EncounterIdType"
+                      use="required"
+                      />
+        <xs:attribute name="patientMRN"
+                      type="hce:MRNRefType"
+                      use="required"
+                      />
+        <xs:attribute name="status"
+                      type="hce:EncounterStatusType"
+                      default="IN_PROGRESS"
+                      />
+        <xs:attribute name="version"
+                      type="xs:positiveInteger"
+                      default="1"
+                      />
+        <xs:attribute name="confidential"
+                      type="xs:boolean"
+                      default="false"
+                      />
+    </xs:complexType>
+
+    <!-- ── Root Element ── -->
+    <xs:element name="ClinicalEncounter"
+                type="hce:EncounterType"
+                />
+
+</xs:schema>

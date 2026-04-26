@@ -1,11 +1,12 @@
 import pdfkit
 import os
 from jinja2 import Environment, FileSystemLoader
-from src.parser.patient_parser import parse_patient_xml
+from src.parsers.patient import PatientParser
 
 def generate_pdf(xml_path, output_path):
     # 1. Parse Data
-    patient = parse_patient_xml(xml_path)
+    parser = PatientParser()
+    patient = parser.parse(xml_path)
     
     # 2. Render HTML
     template_dir = os.path.join(os.path.dirname(__file__), '../templates')

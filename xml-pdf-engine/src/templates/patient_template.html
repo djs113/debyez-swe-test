@@ -1,83 +1,292 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <style>
-        body { font-family: sans-serif; line-height: 1.3; color: #333; font-size: 12px; }
-        h1 { color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 5px; }
-        h2 { color: #2c3e50; background: #f4f4f4; padding: 5px; margin-top: 20px; font-size: 14px; }
-        .section { margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-        th { background-color: #eee; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .emergency-box { margin-bottom: 15px; border-left: 3px solid #2c3e50; padding-left: 10px; }
+        body { font-family: sans-serif; font-size: 11px; margin: 20px; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #2c3e50; padding-bottom: 10px; }
+        h2 { background: #e8f4f8; padding: 8px; margin-top: 20px; border-left: 5px solid #2c3e50; font-size: 14px; }
+        h3 { color: #34495e; margin-top: 15px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 10px; }
+        th, td { border: 1px solid #bdc3c7; padding: 8px; text-align: left; }
+        th { background: #ecf0f1; font-weight: bold; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 15px 0; }
+        .section { background: #fafafa; padding: 10px; border: 1px solid #e0e0e0; }
+        .info-row { margin: 5px 0; }
+        .label { font-weight: bold; display: inline-block; width: 150px; }
+        .value { display: inline; }
+        .badge { display: inline-block; background: #3498db; color: white; padding: 2px 6px; border-radius: 3px; font-size: 9px; margin-right: 5px; }
+        .badge-success { background: #27ae60; }
+        .badge-warning { background: #f39c12; }
+        .empty { color: #7f8c8d; font-style: italic; }
     </style>
 </head>
 <body>
-    <h1>Patient Registration: {{ p.demographic.name.prefix }} {{ p.demographic.name.first }} {{ p.demographic.name.last }} {{ p.demographic.name.suffix }}</h1>
+    <!-- HEADER -->
+    <h1>{{ p.demographics.name.prefix or '' }} {{ p.demographics.name.first_name }} 
+        {% if p.demographics.name.middle_name %}{{ p.demographics.name.middle_name }} {% endif %}
+        {{ p.demographics.name.last_name }} {{ p.demographics.name.suffix or '' }}</h1>
     
-    <div class="section">
-        <h2>1. Demographic Information</h2>
-        <div class="grid">
-            <p><strong>MRN:</strong> {{ p.demographic.mrn }}</p>
-            <p><strong>Preferred Name:</strong> {{ p.demographic.name.preferred or 'N/A' }}</p>
-            <p><strong>DOB:</strong> {{ p.demographic.dob }}</p>
-            <p><strong>Gender:</strong> {{ p.demographic.gender }}</p>
-            <p><strong>Blood Group:</strong> {{ p.demographic.blood_group or 'N/A' }}</p>
-            <p><strong>Marital Status:</strong> {{ p.demographic.marital_status or 'N/A' }}</p>
+    <div class="grid">
+        <div class="section">
+            <h2>Primary Information</h2>
+            <div class="info-row"><span class="label">MRN:</span> <span class="value"><strong>{{ p.mrn }}</strong></span></div>
+            <div class="info-row"><span class="label">Status:</span> <span class="value"><span class="badge {% if p.status == 'ACTIVE' %}badge-success{% elif p.status == 'INACTIVE' %}badge-warning{% endif %}">{{ p.status }}</span></span></div>
+            <div class="info-row"><span class="label">Preferred Name:</span> <span class="value">{{ p.demographics.name.preferred_name or 'N/A' }}</span></div>
+            <div class="info-row"><span class="label">Name Use:</span> <span class="value">{{ p.demographics.name.name_use }}</span></div>
+        </div>
+        
+        <div class="section">
+            <h2>Registration Details</h2>
+            <div class="info-row"><span class="label">Facility:</span> <span class="value">{{ p.registration_metadata.registration_facility }}</span></div>
+            <div class="info-row"><span class="label">Registered:</span> <span class="value">{{ p.registration_metadata.registration_date }}</span></div>
+            <div class="info-row"><span class="label">Registered By:</span> <span class="value">{{ p.registration_metadata.registered_by or 'N/A' }}</span></div>
+            <div class="info-row"><span class="label">Last Updated:</span> <span class="value">{{ p.registration_metadata.last_updated or 'N/A' }}</span></div>
+            <div class="info-row"><span class="label">Updated By:</span> <span class="value">{{ p.registration_metadata.last_updated_by or 'N/A' }}</span></div>
+            <div class="info-row"><span class="label">Source System:</span> <span class="value">{{ p.registration_metadata.source_system }}</span></div>
         </div>
     </div>
 
-    <div class="section">
-        <h2>2. Contact Information</h2>
-        <strong>Addresses:</strong>
-        <ul>
-            {% for addr in p.addresses %}
-                <li>[{{ addr.type }}] {{ addr.line1 }}{% if addr.line2 %}, {{ addr.line2 }}{% endif %}, {{ addr.city }}, {{ addr.state }} {{ addr.postal }}, {{ addr.country }}</li>
-            {% endfor %}
-        </ul>
-        <strong>Communication Methods:</strong>
-        <ul>
-            {% for cm in p.methods %}
-                <li>{{ cm.method }}: {{ cm.value }} {% if cm.note %}({{ cm.note }}){% endif %}</li>
-            {% endfor %}
-        </ul>
+    <!-- DEMOGRAPHICS SECTION -->
+    <h2>Demographics</h2>
+    <div class="grid">
+        <div class="section">
+            <h3>Personal Information</h3>
+            <div class="info-row"><span class="label">Date of Birth:</span> <span class="value">{{ p.demographics.date_of_birth }}</span></div>
+            <div class="info-row"><span class="label">Gender:</span> <span class="value">{{ p.demographics.gender }}</span></div>
+            <div class="info-row"><span class="label">Blood Group:</span> <span class="value">{{ p.demographics.blood_group or 'Not Provided' }}</span></div>
+            <div class="info-row"><span class="label">Marital Status:</span> <span class="value">{{ p.demographics.marital_status or 'Not Provided' }}</span></div>
+            <div class="info-row"><span class="label">Occupation:</span> <span class="value">{{ p.demographics.occupation or 'Not Provided' }}</span></div>
+        </div>
+        <div class="section">
+            <h3>Additional Demographics</h3>
+            <div class="info-row"><span class="label">Nationality:</span> <span class="value">{{ p.demographics.nationality or 'Not Provided' }}</span></div>
+            <div class="info-row"><span class="label">Ethnicity:</span> <span class="value">{{ p.demographics.ethnicity or 'Not Provided' }}</span></div>
+            <div class="info-row"><span class="label">Primary Language:</span> <span class="value">{{ p.demographics.primary_language or 'Not Provided' }}</span></div>
+            <div class="info-row"><span class="label">Interpreter Required:</span> <span class="value">{{ 'Yes' if p.demographics.interpreter_required else 'No' }}</span></div>
+            <div class="info-row"><span class="label">Religion:</span> <span class="value">{{ p.demographics.religion or 'Not Provided' }}</span></div>
+        </div>
     </div>
 
+    <!-- ADDRESSES SECTION -->
+    <h2>Addresses</h2>
+    {% if p.addresses %}
+    <table>
+        <tr>
+            <th>Type</th>
+            <th>Street Line 1</th>
+            <th>Street Line 2</th>
+            <th>City</th>
+            <th>State/Province</th>
+            <th>Postal Code</th>
+            <th>Country</th>
+            <th>Effective From</th>
+            <th>Effective To</th>
+            <th>Preferred</th>
+        </tr>
+        {% for addr in p.addresses %}
+        <tr>
+            <td>{{ addr.address_type or 'GENERAL' }}</td>
+            <td>{{ addr.street_line1 }}</td>
+            <td>{{ addr.street_line2 or '-' }}</td>
+            <td>{{ addr.city }}</td>
+            <td>{{ addr.state_province }}</td>
+            <td>{{ addr.postal_code }}</td>
+            <td>{{ addr.country_code }}</td>
+            <td>{{ addr.effective_from or 'N/A' }}</td>
+            <td>{{ addr.effective_to or 'N/A' }}</td>
+            <td>{{ 'Yes' if addr.preferred else 'No' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p class="empty">No addresses on file.</p>
+    {% endif %}
+
+    <!-- CONTACT METHODS SECTION -->
+    <h2>Contact Methods</h2>
+    {% if p.methods %}
+    <table>
+        <tr>
+            <th>Method</th>
+            <th>Value</th>
+            <th>Note</th>
+            <th>Preferred</th>
+            <th>Active</th>
+        </tr>
+        {% for method in p.methods %}
+        <tr>
+            <td>{{ method.method }}</td>
+            <td>{{ method.value }}</td>
+            <td>{{ method.note or '-' }}</td>
+            <td>{{ 'Yes' if method.preferred else 'No' }}</td>
+            <td><span class="badge {% if method.active %}badge-success{% else %}badge-warning{% endif %}">{{ 'Active' if method.active else 'Inactive' }}</span></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p class="empty">No contact methods on file.</p>
+    {% endif %}
+
+    <!-- ALLERGIES SECTION -->
+    <h2>Allergies</h2>
+    {% if p.allergies %}
+    <table>
+        <tr>
+            <th>Allergen</th>
+            <th>Type</th>
+            <th>Severity</th>
+            <th>Reaction</th>
+            <th>Onset Date</th>
+            <th>Status</th>
+            <th>Verified By</th>
+        </tr>
+        {% for allergy in p.allergies %}
+        <tr>
+            <td>{{ allergy.allergen }}</td>
+            <td>{{ allergy.allergen_type }}</td>
+            <td><span class="badge {% if allergy.severity == 'SEVERE' %}badge-warning{% elif allergy.severity == 'MODERATE' %}badge-warning{% else %}{% endif %}">{{ allergy.severity }}</span></td>
+            <td>{{ allergy.reaction or 'Not Specified' }}</td>
+            <td>{{ allergy.onset_date or 'N/A' }}</td>
+            <td><span class="badge {% if allergy.status == 'ACTIVE' %}badge-success{% else %}badge-warning{% endif %}">{{ allergy.status }}</span></td>
+            <td>{{ allergy.verified_by or '-' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p class="empty">No allergies on file.</p>
+    {% endif %}
+
+    <!-- INSURANCE SECTION -->
+    <h2>Insurance Plans</h2>
+    {% if p.insurance %}
+    <table>
+        <tr>
+            <th>Type</th>
+            <th>Insurer</th>
+            <th>Plan</th>
+            <th>Policy #</th>
+            <th>Group #</th>
+            <th>Member ID</th>
+            <th>Subscriber</th>
+            <th>Effective Date</th>
+            <th>Termination</th>
+            <th>Copay</th>
+            <th>Deductible</th>
+            <th>Status</th>
+        </tr>
+        {% for ins in p.insurance %}
+        <tr>
+            <td>{{ ins.insurance_type }}</td>
+            <td>{{ ins.insurer_name }}</td>
+            <td>{{ ins.plan_name }}</td>
+            <td>{{ ins.policy_number }}</td>
+            <td>{{ ins.group_number or 'N/A' }}</td>
+            <td>{{ ins.member_id }}</td>
+            <td>{{ ins.subscriber_name.first_name if ins.subscriber_name else 'N/A' }} {{ ins.subscriber_name.last_name if ins.subscriber_name else '' }}</td>
+            <td>{{ ins.effective_date }}</td>
+            <td>{{ ins.termination_date or 'Active' }}</td>
+            <td>{{ "$%.2f"|format(ins.copay_amount) if ins.copay_amount else 'N/A' }}</td>
+            <td>{{ "$%.2f"|format(ins.deductible_amount) if ins.deductible_amount else 'N/A' }}</td>
+            <td><span class="badge {% if ins.active %}badge-success{% else %}badge-warning{% endif %}">{{ 'Active' if ins.active else 'Inactive' }}</span></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p class="empty">No insurance plans on file.</p>
+    {% endif %}
+
+    <!-- EMERGENCY CONTACTS SECTION -->
+    <h2>Emergency Contacts</h2>
+    {% if p.emergency %}
+    <table>
+        <tr>
+            <th>Priority</th>
+            <th>Name</th>
+            <th>Relationship</th>
+            <th>Legal Guardian</th>
+            <th>Note</th>
+        </tr>
+        {% for ec in p.emergency %}
+        <tr>
+            <td><strong>{{ ec.priority }}</strong></td>
+            <td>{{ ec.name.prefix or '' }} {{ ec.name.first_name }} 
+                {% if ec.name.middle_name %}{{ ec.name.middle_name }} {% endif %}
+                {{ ec.name.last_name }} {{ ec.name.suffix or '' }}</td>
+            <td>{{ ec.relationship }}</td>
+            <td><span class="badge {% if ec.legal_guardian %}badge-success{% endif %}">{{ 'Yes' if ec.legal_guardian else 'No' }}</span></td>
+            <td>{{ ec.note or '-' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- EMERGENCY CONTACT DETAILS -->
+    {% for ec in p.emergency %}
+    <h3>{{ ec.relationship }} - {{ ec.name.first_name }} {{ ec.name.last_name }} (Priority: {{ ec.priority }})</h3>
+    
     <div class="section">
-        <h2>3. Insurance Summary</h2>
+        <strong>Addresses:</strong>
+        {% if ec.addresses %}
         <table>
-            <tr><th>Type</th><th>Insurer</th><th>Plan</th><th>Policy #</th><th>Member ID</th><th>Copay</th><th>Status</th></tr>
-            {% for ins in p.insurance %}
             <tr>
-                <td>{{ ins.type }}</td>
-                <td>{{ ins.insurer }}</td>
-                <td>{{ ins.plan }}</td>
-                <td>{{ ins.policy }}</td>
-                <td>{{ ins.member_id }}</td>
-                <td>${{ ins.copay }}</td>
-                <td>{{ ins.status }}</td>
+                <th>Type</th>
+                <th>Street Line 1</th>
+                <th>Street Line 2</th>
+                <th>City</th>
+                <th>State/Province</th>
+                <th>Postal Code</th>
+                <th>Country</th>
             </tr>
-            {% else %}
-            <tr><td colspan="7">No insurance plans on file.</td></tr>
+            {% for addr in ec.addresses %}
+            <tr>
+                <td>{{ addr.address_type or 'GENERAL' }}</td>
+                <td>{{ addr.street_line1 }}</td>
+                <td>{{ addr.street_line2 or '-' }}</td>
+                <td>{{ addr.city }}</td>
+                <td>{{ addr.state_province }}</td>
+                <td>{{ addr.postal_code }}</td>
+                <td>{{ addr.country_code }}</td>
+            </tr>
             {% endfor %}
         </table>
+        {% else %}
+        <p class="empty">No addresses on file.</p>
+        {% endif %}
     </div>
 
     <div class="section">
-        <h2>4. Emergency Contacts</h2>
-        {% for ec in p.emergency %}
-            <div class="emergency-box">
-                <p><strong>{{ ec.name.first }} {{ ec.name.last }}</strong> ({{ ec.relationship }}) - Priority: {{ ec.priority }}</p>
-                <p><em>Note: {{ ec.note or 'None' }}</em></p>
-                <p style="font-size: 11px;">
-                    <strong>Addr:</strong> 
-                    {% for addr in ec.addresses %}{{ addr.line1 }}, {{ addr.city }}{% endfor %} | 
-                    <strong>Contacts:</strong> 
-                    {% for cm in ec.methods %}{{ cm.method }}: {{ cm.value }}{% if not loop.last %}, {% endif %}{% endfor %}
-                </p>
-            </div>
-        {% endfor %}
+        <strong>Contact Methods:</strong>
+        {% if ec.methods %}
+        <table>
+            <tr>
+                <th>Method</th>
+                <th>Value</th>
+                <th>Note</th>
+                <th>Preferred</th>
+            </tr>
+            {% for method in ec.methods %}
+            <tr>
+                <td>{{ method.method }}</td>
+                <td>{{ method.value }}</td>
+                <td>{{ method.note or '-' }}</td>
+                <td>{{ 'Yes' if method.preferred else 'No' }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p class="empty">No contact methods on file.</p>
+        {% endif %}
     </div>
+    {% endfor %}
+    {% else %}
+    <p class="empty">No emergency contacts on file.</p>
+    {% endif %}
+
+    <!-- FOOTER -->
+    <hr style="margin-top: 30px; border: 1px solid #e0e0e0;">
+    <p style="font-size: 9px; color: #7f8c8d; text-align: center;">
+        Document generated on {{ now }} | Patient Report v1.0
+    </p>
 </body>
 </html>
