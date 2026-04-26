@@ -5,7 +5,10 @@ from src.core.registry import SCHEMA_REGISTRY
 
 # Initialize Jinja2 Environment
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), '../templates')
-env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+env = Environment(
+    loader=FileSystemLoader(TEMPLATE_DIR),
+    auto_reload=True
+)
 
 def render_document(schema_type, xml_path, output_path, template_name):
     """

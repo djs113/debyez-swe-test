@@ -339,6 +339,21 @@
             border: 1px solid #fc8181;
         }
 
+        .status.error ul {
+            margin: 12px 0 0 20px;
+            font-size: 13px;
+        }
+
+        .status.error li {
+            margin: 6px 0;
+            line-height: 1.4;
+        }
+
+        .status.error strong {
+            font-weight: 600;
+            color: #542c2c;
+        }
+
         .status.loading {
             background: #feebc8;
             color: #7c2d12;
@@ -545,6 +560,11 @@
             const iconMap = { success: '✓', error: '✕', loading: '⟳' };
             statusDiv.className = `status ${type}`;
             statusDiv.innerHTML = `<span class="status-icon"></span><span>${message}</span>`;
+
+            // If message contains HTML (for validation errors), update innerHTML safely
+            if (message.includes('<')) {
+                statusDiv.innerHTML = `<span class="status-icon"></span><div style="text-align: left; margin-top: 8px;">${message}</div>`;
+            }
         }
 
         // Toggle auto-detect mode
@@ -571,9 +591,28 @@
             try {
                 showStatus('Uploading file...', 'loading');
                 let res = await fetch("/upload", {method: "POST", body: formData});
-                if (!res.ok) throw new Error("Upload failed");
 
                 let data = await res.json();
+
+                if (!res.ok) {
+                    // Handle validation errors
+                    if (data.error) {
+                        let errorMsg = data.error;
+                        if (data.validation_errors && Object.keys(data.validation_errors).length > 0) {
+                            errorMsg += '<br><br><strong>Validation errors:</strong><ul>';
+                            for (const [schema, error] of Object.entries(data.validation_errors)) {
+                                errorMsg += `<li><strong>${schema}:</strong> ${error}</li>`;
+                            }
+                            errorMsg += '</ul>';
+                            showStatus(errorMsg, 'error');
+                        } else {
+                            showStatus(errorMsg, 'error');
+                        }
+                    } else {
+                        showStatus('Upload failed', 'error');
+                    }
+                    return;
+                }
                 currentFilename = data.filename;
                 currentRequestId = data.request_id;
 
@@ -624,14 +663,28 @@
         document.getElementById('schemaSelect').addEventListener('change', async function() {
             const selectedSchema = this.value;
             if (selectedSchema) {
-                currentSchema = selectedSchema;
-                document.getElementById('schemaLabel').innerText = selectedSchema;
-                document.getElementById('schemaStatusLabel').innerText = '✓ Schema Selected';
-                document.getElementById('actionArea').style.display = 'block';
-                showStatus(`Schema set to: ${selectedSchema}`, 'success');
-
-                // Load templates for the selected schema
+                // Validate the uploaded file against the selected schema
                 try {
+                    showStatus('Validating file against selected schema...', 'loading');
+                    let validateRes = await fetch(`/validate/${currentRequestId}/${selectedSchema}`, {method: 'POST'});
+
+                    if (!validateRes.ok) {
+                        let errData = await validateRes.json();
+                        let errorMsg = errData.detail.error;
+                        if (errData.detail.validation_error) {
+                            errorMsg += `<br><br><strong>Validation error:</strong><br>${errData.detail.validation_error}`;
+                        }
+                        showStatus(errorMsg, 'error');
+                        return;
+                    }
+
+                    currentSchema = selectedSchema;
+                    document.getElementById('schemaLabel').innerText = selectedSchema;
+                    document.getElementById('schemaStatusLabel').innerText = '✓ Schema Selected';
+                    document.getElementById('actionArea').style.display = 'block';
+                    showStatus(`Schema validated successfully!`, 'success');
+
+                    // Load templates for the selected schema
                     let tempRes = await fetch(`/templates/${selectedSchema}`);
                     let tempData = await tempRes.json();
 
@@ -647,7 +700,7 @@
 
                     document.getElementById('templateSection').style.display = 'block';
                 } catch (err) {
-                    showStatus(`Error loading templates: ${err.message}`, 'error');
+                    showStatus(`Error: ${err.message}`, 'error');
                 }
             } else {
                 document.getElementById('actionArea').style.display = 'none';
@@ -659,7 +712,7 @@
             const btn = document.getElementById('generateBtn');
             const isViewMode = document.getElementById('viewToggle').checked;
             btn.disabled = true;
-            showStatus('Generating PDF...', 'loading');
+            showStatus('Queueing PDF job...', 'loading');
             
             let formData = new FormData();
             formData.append("filename", currentFilename);
@@ -668,27 +721,48 @@
             formData.append("template_name", document.getElementById('templateSelect').value);
             
             try {
-                console.log(formData.get("filename"), formData.get("schema"), formData.get("request_id"));
-                let res = await fetch("/generate", {method: "POST", body: formData});
+                // 1. Initiate the job
+                let res = await fetch("/generate", { method: "POST", body: formData });
                 if (!res.ok) throw new Error("PDF generation failed");
                 
-                let blob = await res.blob();
-                let url = window.URL.createObjectURL(blob);
+                let job = await res.json();
+                const jobId = job.job_id;
                 
-                if (isViewMode) {
-                    window.open(url, '_blank');
-                    showStatus('PDF opened in new tab!', 'success');
-                } else {
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `${currentFilename.split('.')[0]}.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    showStatus('PDF downloaded successfully!', 'success');
+                // 2. Poll for status
+                let isComplete = false;
+                while (!isComplete) {
+                    showStatus('Processing PDF...', 'loading');
+                    await new Promise(r => setTimeout(r, 2000)); // Poll every 2 seconds
+                    
+                    let statusRes = await fetch(`/status/${jobId}`);
+                    let statusData = await statusRes.json();
+                    
+                    if (statusData.status === 'COMPLETE') {
+                        isComplete = true;
+                        showStatus('Job complete! Fetching PDF...', 'success');
+                        
+                        // 3. Retrieve the final PDF
+                        let downloadRes = await fetch(`/download/${jobId}`);
+                        let blob = await downloadRes.blob();
+                        let url = window.URL.createObjectURL(blob);
+                        
+                        if (isViewMode) {
+                            window.open(url, '_blank');
+                            showStatus('PDF opened in new tab!', 'success');
+                        } else {
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `${currentFilename.split('.')[0]}.pdf`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            showStatus('PDF downloaded successfully!', 'success');
+                        }
+                        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+                    } else if (statusData.status === 'FAILED') {
+                        throw new Error("Job failed on server: " + (statusData.error || "Unknown"));
+                    }
                 }
-                
-                setTimeout(() => window.URL.revokeObjectURL(url), 100);
             } catch (err) {
                 showStatus(`Error: ${err.message}`, 'error');
             } finally {
