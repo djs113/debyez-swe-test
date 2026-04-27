@@ -8,7 +8,7 @@ src/parser/__init__.py
 src/parser/patient_parser.py
 src/renderer/__init__.py
 src/renderer/pdf_builder.py
-tests/test_parser.py
+tests/test_cli.py
 xml_pdf_renderer.egg-info/PKG-INFO
 xml_pdf_renderer.egg-info/SOURCES.txt
 xml_pdf_renderer.egg-info/dependency_links.txt
