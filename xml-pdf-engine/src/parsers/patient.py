@@ -19,15 +19,23 @@ class PatientParser(BaseParser):
             tree = etree.parse(xml_path, parser)
             root = tree.getroot()
         except etree.XMLSyntaxError as e:
-            logger.error(f"Invalid XML syntax in {xml_path}: {e}")
-            raise ValueError(f"Invalid XML: {e}")
+            error_msg = f"Line {e.lineno}: {e.msg}" if e.lineno else str(e)
+            logger.error(f"Invalid XML syntax in {xml_path}: {error_msg}")
+            raise ValueError(f"Invalid XML: {error_msg}")
         except Exception as e:
             logger.error(f"Error parsing XML {xml_path}: {e}")
             raise ValueError(f"Error parsing XML: {e}")
 
+        # Log any unknown elements at root level (defensive robustness)
+        expected_root_elements = {
+            'demographics', 'contactInfo', 'insurancePlan', 'emergencyContacts',
+            'allergy', 'registration'
+        }
+        self.log_unknown_elements(root, expected_root_elements)
+
         # 1. Demographic
         demo_node = self.safe_get_element(root, '//his:demographics', namespaces=ns, required=True)
-        if not demo_node:
+        if demo_node is None:
             raise ValueError("Required demographics section not found")
 
         name_node = self.safe_get_element(demo_node, 'his:name', namespaces=ns, required=True)
@@ -58,9 +66,11 @@ class PatientParser(BaseParser):
         contact_info_node = self.safe_get_element(root, 'his:contactInfo', namespaces=ns, required=False)
 
         addresses = []
-        if contact_info_node:
+        if contact_info_node is not None:
             for a in contact_info_node.xpath('his:addresses/his:address', namespaces=ns) or []:
                 try:
+                    eff_from = self.safe_get_text(a, 'his:effectiveFrom', ns)
+                    eff_to = self.safe_get_text(a, 'his:effectiveTo', ns)
                     addresses.append(Address(
                         street_line1=self.safe_get_text(a, 'his:streetLine1', ns, default="", field_type='address'),
                         street_line2=self.safe_get_text(a, 'his:streetLine2', ns, field_type='address'),
@@ -69,8 +79,8 @@ class PatientParser(BaseParser):
                         postal_code=self.safe_get_text(a, 'his:postalCode', ns, default="", field_type='code'),
                         country_code=self.safe_get_text(a, 'his:countryCode', ns, default="", field_type='code'),
                         address_type=self.safe_get_text(a, 'his:addressType', ns),
-                        effective_from=self.safe_get_text(a, 'his:effectiveFrom', ns),
-                        effective_to=self.safe_get_text(a, 'his:effectiveTo', ns),
+                        effective_from=eff_from if eff_from else None,
+                        effective_to=eff_to if eff_to else None,
                         preferred=a.get('preferred') == 'true'
                     ))
                 except Exception as e:
@@ -78,7 +88,7 @@ class PatientParser(BaseParser):
                     continue
 
         methods = []
-        if contact_info_node:
+        if contact_info_node is not None:
             for cm in contact_info_node.xpath('his:contactMethods/his:contactMethod', namespaces=ns) or []:
                 try:
                     methods.append(ContactMethod(
@@ -139,7 +149,7 @@ class PatientParser(BaseParser):
         # 4. Emergency Contacts (Full Mapping)
         def parse_contact_info(ci_node):
             ec_addresses = []
-            if ci_node:
+            if ci_node is not None:
                 for a in ci_node.xpath('.//his:address', namespaces=ns) or []:
                     try:
                         ec_addresses.append(Address(
@@ -150,6 +160,8 @@ class PatientParser(BaseParser):
                             postal_code=self.safe_get_text(a, 'his:postalCode', ns, default="", field_type='code'),
                             country_code=self.safe_get_text(a, 'his:countryCode', ns, default="", field_type='code'),
                             address_type=self.safe_get_text(a, 'his:addressType', ns),
+                            effective_from=None,
+                            effective_to=None,
                             preferred=a.get('preferred') == 'true'
                         ))
                     except Exception as e:
@@ -157,7 +169,7 @@ class PatientParser(BaseParser):
                         continue
 
             ec_methods = []
-            if ci_node:
+            if ci_node is not None:
                 for cm in ci_node.xpath('.//his:contactMethod', namespaces=ns) or []:
                     try:
                         ec_methods.append(ContactMethod(
@@ -177,18 +189,18 @@ class PatientParser(BaseParser):
             try:
                 name_n = self.safe_get_element(ec, 'his:name', ns)
                 ci_n = self.safe_get_element(ec, 'his:contactInfo', ns)
-                addr_list, method_list = parse_contact_info(ci_n) if ci_n else ([], [])
+                addr_list, method_list = parse_contact_info(ci_n) if ci_n is not None else ([], [])
 
                 emergency.append(EmergencyContact(
                     priority=int(ec.get('priority', 0)),
                     name=Name(
-                        prefix=self.safe_get_text(name_n, 'his:prefix', ns, field_type='name') if name_n else None,
-                        first_name=self.safe_get_text(name_n, 'his:firstName', ns, default="", field_type='name') if name_n else "",
-                        middle_name=self.safe_get_text(name_n, 'his:middleName', ns, field_type='name') if name_n else None,
-                        last_name=self.safe_get_text(name_n, 'his:lastName', ns, default="", field_type='name') if name_n else "",
-                        suffix=self.safe_get_text(name_n, 'his:suffix', ns, field_type='name') if name_n else None,
-                        preferred_name=self.safe_get_text(name_n, 'his:preferredName', ns, field_type='name') if name_n else None,
-                        name_use=name_n.get('nameUse', 'LEGAL') if name_n else 'LEGAL'
+                        prefix=self.safe_get_text(name_n, 'his:prefix', ns, field_type='name') if name_n is not None else None,
+                        first_name=self.safe_get_text(name_n, 'his:firstName', ns, default="", field_type='name') if name_n is not None else "",
+                        middle_name=self.safe_get_text(name_n, 'his:middleName', ns, field_type='name') if name_n is not None else None,
+                        last_name=self.safe_get_text(name_n, 'his:lastName', ns, default="", field_type='name') if name_n is not None else "",
+                        suffix=self.safe_get_text(name_n, 'his:suffix', ns, field_type='name') if name_n is not None else None,
+                        preferred_name=self.safe_get_text(name_n, 'his:preferredName', ns, field_type='name') if name_n is not None else None,
+                        name_use=name_n.get('nameUse', 'LEGAL') if name_n is not None else 'LEGAL'
                     ),
                     relationship=self.safe_get_text(ec, 'his:relationship', ns, default=""),
                     addresses=addr_list,
@@ -204,12 +216,13 @@ class PatientParser(BaseParser):
         allergies = []
         for allergy_node in root.xpath('.//his:allergy', namespaces=ns) or []:
             try:
+                onset_date_str = self.safe_get_text(allergy_node, 'his:onsetDate', ns)
                 allergies.append(Allergy(
                     allergen=self.safe_get_text(allergy_node, 'his:allergen', ns, default="", field_type='text'),
                     allergen_type=self.safe_get_text(allergy_node, 'his:allergenType', ns, default=""),
                     severity=self.safe_get_text(allergy_node, 'his:severity', ns, default=""),
                     reaction=self.safe_get_text(allergy_node, 'his:reaction', ns, field_type='description'),
-                    onset_date=self.safe_get_text(allergy_node, 'his:onsetDate', ns),
+                    onset_date=onset_date_str if onset_date_str else None,
                     verified_by=self.safe_get_text(allergy_node, 'his:verifiedBy', ns, field_type='name'),
                     status=self.safe_get_text(allergy_node, 'his:status', ns, default="ACTIVE"),
                     recorded=allergy_node.get('recorded')
@@ -258,7 +271,7 @@ class PatientParser(BaseParser):
 
         return PatientReport(
             mrn=self.safe_get_attr(root, 'mrn', default="", field_type='identifier'),
-            status=self.safe_get_text(demo_node, 'his:status', ns, default="ACTIVE") if demo_node else "ACTIVE",
+            status=self.safe_get_text(demo_node, 'his:status', ns, default="ACTIVE") if demo_node is not None else "ACTIVE",
             demographics=demographic,
             addresses=addresses,
             methods=methods,

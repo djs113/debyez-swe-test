@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<his:PatientRecord xmlns:his="urn:his:patient:v2" mrn="MRN-12345601">
+    <his:demographics>
+        <his:name>
+            <his:firstName>Jöhn</his:firstName>
+        </his:name>
+    </his:demographics>
+</his:PatientRecord>

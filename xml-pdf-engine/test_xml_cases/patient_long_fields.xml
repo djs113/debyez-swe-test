@@ -1,22 +1,67 @@
-<?xml version="1.0"?>
-<PatientRecord xmlns="urn:his:patient:v2" mrn="PAT-003">
-    <registration>
-        <facility>Hospital C</facility>
-        <registrationDate>2024-01-15</registrationDate>
-    </registration>
-    <demographics>
-        <status>ACTIVE</status>
-        <name>
-            <firstName>Jonathan</firstName>
-            <lastName>Doe</lastName>
-        </name>
-        <dateOfBirth>1990-01-01</dateOfBirth>
-        <gender>M</gender>
-    </demographics>
-    <contactInfo/>
-    <allergy allergenType="Medication">
-        <allergen>Penicillin</allergen>
-        <severity>SEVERE</severity>
-        <reaction>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</reaction>
-    </allergy>
-</PatientRecord>
+<?xml version="1.0" encoding="UTF-8"?>
+<his:PatientRecord xmlns:his="urn:his:patient:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" mrn="MRN-12345603">
+    <his:demographics>
+        <his:name>
+            <his:firstName>John</his:firstName>
+            <his:lastName>Doe</his:lastName>
+        </his:name>
+        <his:dateOfBirth>1990-01-01</his:dateOfBirth>
+        <his:gender>M</his:gender>
+    </his:demographics>
+    <his:contactInfo>
+        <his:addresses>
+            <his:address>
+                <his:streetLine1>123 Main St</his:streetLine1>
+                <his:city>Townsville</his:city>
+                <his:stateProvince>NY</his:stateProvince>
+                <his:postalCode>10001</his:postalCode>
+                <his:countryCode>USA</his:countryCode>
+            </his:address>
+        </his:addresses>
+        <his:contactMethods>
+            <his:contactMethod active="true">
+                <his:method>HOME</his:method>
+                <his:value>555-0100</his:value>
+            </his:contactMethod>
+        </his:contactMethods>
+    </his:contactInfo>
+    <his:emergencyContacts>
+        <his:emergencyContact priority="1">
+            <his:name>
+                <his:firstName>Jane</his:firstName>
+                <his:lastName>Doe</his:lastName>
+            </his:name>
+            <his:relationship>SPOUSE</his:relationship>
+            <his:contactInfo>
+                <his:addresses>
+                    <his:address>
+                        <his:streetLine1>123 Main St</his:streetLine1>
+                        <his:city>Town</his:city>
+                        <his:stateProvince>NY</his:stateProvince>
+                        <his:postalCode>10001</his:postalCode>
+                        <his:countryCode>USA</his:countryCode>
+                    </his:address>
+                </his:addresses>
+                <his:contactMethods>
+                    <his:contactMethod active="true">
+                        <his:method>MOBILE</his:method>
+                        <his:value>555-0199</his:value>
+                    </his:contactMethod>
+                </his:contactMethods>
+            </his:contactInfo>
+        </his:emergencyContact>
+    </his:emergencyContacts>
+    <his:allergies>
+        <his:allergy>
+            <his:allergen>Penicillin</his:allergen>
+            <his:allergenType>MEDICATION</his:allergenType>
+            <his:severity>SEVERE</his:severity>
+            <his:reaction>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</his:reaction>
+        </his:allergy>
+    </his:allergies>
+    <his:registrationMetadata>
+        <his:registrationDate>2024-01-15T00:00:00</his:registrationDate>
+        <his:registrationFacility>Hospital A</his:registrationFacility>
+        <his:registeredBy>admin.clerk</his:registeredBy>
+    </his:registrationMetadata>
+</his:PatientRecord>

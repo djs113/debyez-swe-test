@@ -163,5 +163,11 @@
         {% if p.discharge_info.referred_to %}<p><strong>Referred To:</strong> {{ p.discharge_info.referred_to|safe_str }}</p>{% endif %}
     </div>
     {% endif %}
+
+    <!-- FOOTER -->
+    <hr style="margin-top: 30px; border: 1px solid #e0e0e0;">
+    <p style="font-size: 9px; color: #7f8c8d; text-align: center;">
+        Document generated on {{ now }} | Clinical Encounter Summary v1.0
+    </p>
 </body>
 </html>

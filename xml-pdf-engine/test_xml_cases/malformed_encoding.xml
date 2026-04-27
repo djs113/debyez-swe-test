@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<his:PatientRecord xmlns:his="urn:his:patient:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" mrn="MRN-12345601">
+<his:PatientRecord xmlns:his="urn:his:patient:v2" mrn="MRN-12345601">
     <his:demographics>
         <his:name>
-            <his:firstName>John</his:firstName>
-            <his:lastName>Doe</his:lastName>
+            <his:firstName>Jöhn</his:firstName>
+            <his:lastName>Döe</his:lastName>
         </his:name>
         <his:dateOfBirth>1990-01-01</his:dateOfBirth>
         <his:gender>M</his:gender>
@@ -11,8 +11,8 @@
     <his:contactInfo>
         <his:addresses>
             <his:address>
-                <his:streetLine1>123 Main St</his:streetLine1>
-                <his:city>Townsville</his:city>
+                <his:streetLine1>123 Mäin St</his:streetLine1>
+                <his:city>Tëwnsville</his:city>
                 <his:stateProvince>NY</his:stateProvince>
                 <his:postalCode>10001</his:postalCode>
                 <his:countryCode>USA</his:countryCode>
@@ -28,8 +28,8 @@
     <his:emergencyContacts>
         <his:emergencyContact priority="1">
             <his:name>
-                <his:firstName>Jane</his:firstName>
-                <his:lastName>Doe</his:lastName>
+                <his:firstName>Jäne</his:firstName>
+                <his:lastName>Döe</his:lastName>
             </his:name>
             <his:relationship>SPOUSE</his:relationship>
             <his:contactInfo>

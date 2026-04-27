@@ -16,8 +16,9 @@ class BillingParser(BaseParser):
             tree = etree.parse(xml_path, parser)
             root = tree.getroot()
         except etree.XMLSyntaxError as e:
-            logger.error(f"Invalid XML syntax in {xml_path}: {e}")
-            raise ValueError(f"Invalid XML: {e}")
+            error_msg = f"Line {e.lineno}: {e.msg}" if e.lineno else str(e)
+            logger.error(f"Invalid XML syntax in {xml_path}: {error_msg}")
+            raise ValueError(f"Invalid XML: {error_msg}")
         except Exception as e:
             logger.error(f"Error parsing XML {xml_path}: {e}")
             raise ValueError(f"Error parsing XML: {e}")
@@ -52,6 +53,14 @@ class BillingParser(BaseParser):
             except ValueError as e:
                 logger.warning(f"Error parsing datetime {dt_str}: {e}")
                 return None
+
+        # Log any unknown elements at root level (defensive robustness)
+        expected_root_elements = {
+            'claimNumber', 'serviceDate', 'billingProvider', 'servicingProvider',
+            'payer', 'patient', 'procedures', 'diagnosisPointers', 'serviceLineItems',
+            'adjustments', 'payments', 'appeals', 'totals'
+        }
+        self.log_unknown_elements(root, expected_root_elements)
 
         # 1. Billing Provider
         bp = self.safe_get_element(root, 'hbill:billingProvider', ns)

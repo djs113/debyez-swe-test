@@ -1,0 +1,12 @@
+services:
+  xml-pdf-engine:
+    build: .
+    container_name: xml-pdf-engine
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./output:/app/output
+      - ./temp:/app/temp
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

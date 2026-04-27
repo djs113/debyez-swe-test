@@ -481,6 +481,11 @@
 
             <!-- Schema Selection -->
             <div class="schema-section">
+                <h3>⚙️ Rendering Engine</h3>
+                <select id="engineSelect" style="margin-bottom: 24px;">
+                    <option value="PDFKIT">PDFKit (with wkhtmltopdf)</option>
+                    <option value="PLAYWRIGHT">Playwright (Headless Browser)</option>
+                </select>
                 <h3>📋 Schema Detection</h3>
                 
                 <div class="toggle-container">
@@ -536,6 +541,26 @@
                 </div>
                 
                 <button id="generateBtn" onclick="generate()">🚀 Generate PDF</button>
+
+                <!-- Job Status Indicator -->
+                <div id="jobStatusIndicator" style="display:none; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border: 2px solid #667eea; border-radius: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="font-weight: 600; color: #2d3748; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Processing Job</span>
+                        <span id="jobStatus" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Queued</span>
+                    </div>
+                    <div style="font-size: 12px; color: #4a5568;">
+                        <strong>Job ID:</strong> <span id="jobIdDisplay" style="font-family: 'Courier New', monospace;">--</span>
+                    </div>
+                </div>
+
+                <!-- PDF Preview -->
+                <div id="previewArea" style="display:none; margin-top: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                        <h3 style="font-size: 15px; color: #2c3e50; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">📄 PDF Preview</h3>
+                        <button id="maximizeBtn" onclick="maximizePDF()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;">⛶ Open in New Tab</button>
+                    </div>
+                    <iframe id="pdfPreview" style="width:100%; height:400px; border:1px solid #e2e8f0; border-radius: 8px;"></iframe>
+                </div>
             </div>
 
             <!-- Status Messages -->
@@ -552,8 +577,29 @@
         let currentFilename = "";
         let currentSchema = "";
         let useAutoDetect = true;
-        let currentRequestId = ""; 
+        let currentRequestId = "";
+        let currentPdfUrl = "";
         //let templateName = "";
+
+        function maximizePDF() {
+            if (currentPdfUrl) {
+                window.open(currentPdfUrl, '_blank');
+            }
+        }
+
+        function updateJobStatus(status) {
+            const statusBadge = document.getElementById('jobStatus');
+            const statusColors = {
+                'QUEUED': { text: 'Queued', gradient: 'linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%)' },
+                'PROCESSING': { text: 'Processing', gradient: 'linear-gradient(135deg, #f6ad55 0%, #ed8936 100%)' },
+                'COMPLETE': { text: 'Complete', gradient: 'linear-gradient(135deg, #9ae6b4 0%, #68d391 100%)' },
+                'FAILED': { text: 'Failed', gradient: 'linear-gradient(135deg, #fc8181 0%, #f56565 100%)' }
+            };
+
+            const config = statusColors[status] || statusColors['QUEUED'];
+            statusBadge.textContent = config.text;
+            statusBadge.style.background = config.gradient;
+        }
 
         function showStatus(message, type) {
             const statusDiv = document.getElementById('status');
@@ -593,21 +639,30 @@
                 let res = await fetch("/upload", {method: "POST", body: formData});
 
                 let data = await res.json();
+                console.log('Upload response:', {status: res.ok, data: data});
 
                 if (!res.ok) {
+                    // FastAPI wraps error response in "detail" field
+                    let errorData = data.detail || data;
+
                     // Handle validation errors
-                    if (data.error) {
-                        let errorMsg = data.error;
-                        if (data.validation_errors && Object.keys(data.validation_errors).length > 0) {
-                            errorMsg += '<br><br><strong>Validation errors:</strong><ul>';
-                            for (const [schema, error] of Object.entries(data.validation_errors)) {
-                                errorMsg += `<li><strong>${schema}:</strong> ${error}</li>`;
+                    if (errorData.error) {
+                        let errorMsg = errorData.error;
+                        // Format syntax errors with line numbers
+                        if (errorMsg.includes('Line ')) {
+                            const match = errorMsg.match(/Line (\d+):\s*(.+)/);
+                            if (match) {
+                                errorMsg = `<strong style="color: #c53030;">XML Syntax Error</strong><br><span style="font-family: monospace;">Line ${match[1]}: ${match[2]}</span>`;
+                            }
+                        }
+                        if (errorData.validation_errors && Object.keys(errorData.validation_errors).length > 0) {
+                            errorMsg += '<br><br><strong>Schema Validation Errors:</strong><ul style="margin-top: 8px;">';
+                            for (const [schema, error] of Object.entries(errorData.validation_errors)) {
+                                errorMsg += `<li style="margin: 4px 0;"><strong>${schema}:</strong> ${error}</li>`;
                             }
                             errorMsg += '</ul>';
-                            showStatus(errorMsg, 'error');
-                        } else {
-                            showStatus(errorMsg, 'error');
                         }
+                        showStatus(errorMsg, 'error');
                     } else {
                         showStatus('Upload failed', 'error');
                     }
@@ -718,30 +773,38 @@
             const isViewMode = document.getElementById('viewToggle').checked;
             btn.disabled = true;
             showStatus('Queueing PDF job...', 'loading');
-            
+
             let formData = new FormData();
             formData.append("filename", currentFilename);
             formData.append("schema", currentSchema);
             formData.append("request_id", currentRequestId);
             formData.append("template_name", document.getElementById('templateSelect').value);
-            
+            formData.append("strategy", document.getElementById('engineSelect').value);
+
             try {
                 // 1. Initiate the job
                 let res = await fetch("/generate", { method: "POST", body: formData });
                 if (!res.ok) throw new Error("PDF generation failed");
-                
+
                 let job = await res.json();
                 const jobId = job.job_id;
-                
+
+                // Show job status indicator
+                document.getElementById('jobStatusIndicator').style.display = 'block';
+                document.getElementById('jobIdDisplay').textContent = jobId;
+                updateJobStatus('QUEUED');
+
                 // 2. Poll for status
                 let isComplete = false;
                 while (!isComplete) {
                     showStatus('Processing PDF...', 'loading');
                     await new Promise(r => setTimeout(r, 2000)); // Poll every 2 seconds
-                    
+
                     let statusRes = await fetch(`/status/${jobId}`);
                     let statusData = await statusRes.json();
-                    
+
+                    updateJobStatus(statusData.status);
+
                     if (statusData.status === 'COMPLETE') {
                         isComplete = true;
                         showStatus('Job complete! Fetching PDF...', 'success');
@@ -750,26 +813,30 @@
                         let downloadRes = await fetch(`/download/${jobId}`);
                         let blob = await downloadRes.blob();
                         let url = window.URL.createObjectURL(blob);
-                        
-                        if (isViewMode) {
-                            window.open(url, '_blank');
-                            showStatus('PDF opened in new tab!', 'success');
-                        } else {
+
+                        // Display PDF preview
+                        currentPdfUrl = url;
+                        let previewFrame = document.getElementById('pdfPreview');
+                        previewFrame.src = url;
+                        document.getElementById('previewArea').style.display = 'block';
+                        showStatus('PDF generated successfully!', 'success');
+
+                        if (!isViewMode) {
                             const link = document.createElement('a');
                             link.href = url;
                             link.download = `${currentFilename.split('.')[0]}.pdf`;
                             document.body.appendChild(link);
                             link.click();
                             document.body.removeChild(link);
-                            showStatus('PDF downloaded successfully!', 'success');
                         }
-                        setTimeout(() => window.URL.revokeObjectURL(url), 100);
                     } else if (statusData.status === 'FAILED') {
+                        updateJobStatus('FAILED');
                         throw new Error("Job failed on server: " + (statusData.error || "Unknown"));
                     }
                 }
             } catch (err) {
                 showStatus(`Error: ${err.message}`, 'error');
+                document.getElementById('jobStatusIndicator').style.display = 'none';
             } finally {
                 btn.disabled = false;
             }

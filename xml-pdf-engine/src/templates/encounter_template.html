@@ -78,5 +78,11 @@
        <strong>Discharge Condition:</strong> {{ p.discharge_info.discharge_condition or 'N/A' }}<br>
        <strong>Follow-up Instructions:</strong> {{ p.discharge_info.follow_up_instructions or 'N/A' }}</p>
     {% endif %}
+
+    <!-- FOOTER -->
+    <hr style="margin-top: 30px; border: 1px solid #e0e0e0;">
+    <p style="font-size: 9px; color: #7f8c8d; text-align: center;">
+        Document generated on {{ now }} | Clinical Encounter Report v1.0
+    </p>
 </body>
 </html>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<his:PatientRecord xmlns:his="urn:his:patient:v2" mrn="MRN-12345601">
+    <his:demographics>
+        <his:name>
+            <his:firstName>John</his:firstName>
+            <his:lastName>Doe</his:lastName>
+        </his:name>
+        <his:dateOfBirth>1990-01-01</his:dateOfBirth>
+        <his:gender>M</his:gender>
+    </his:demographics>
+    <his:contactInfo>
+        <his:addresses>
+            <his:address>
+                <his:streetLine1>123 Main St
+                <his:city>Townsville</his:city>
+            </his:address>
+        </his:addresses>
+        <his:contactMethods>
+        </his:contactMethods>
+    </his:contactInfo>
+    <his:emergencyContacts>
+    </his:emergencyContacts>
+    <his:registrationMetadata>
+        <his:registrationDate>2024-01-15T00:00:00</his:registrationDate>
+        <his:registrationFacility>Hospital A</his:registrationFacility>
+        <his:registeredBy>admin.clerk</his:registeredBy>
+    </his:registrationMetadata>
+</his:PatientRecord>

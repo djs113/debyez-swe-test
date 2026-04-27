@@ -71,6 +71,26 @@ class BaseParser(ABC):
             logger.error(f"Error getting element {xpath}: {e}")
             return None
 
+    @staticmethod
+    def log_unknown_elements(element, expected_names):
+        """Log any child elements not in the expected list (defensive robustness)."""
+        if element is None:
+            return
+
+        try:
+            for child in element:
+                # Extract local name from tag (strip namespace prefix)
+                tag = child.tag
+                if '}' in tag:
+                    local_name = tag.split('}')[1]
+                else:
+                    local_name = tag
+
+                if local_name not in expected_names:
+                    logger.warning(f"Unknown/unexpected element found and skipped: <{local_name}>")
+        except Exception as e:
+            logger.debug(f"Error logging unknown elements: {e}")
+
     @abstractmethod
     def parse(self, xml_path: str):
         pass

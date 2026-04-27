@@ -15,11 +15,20 @@ class EncounterParser(BaseParser):
             tree = etree.parse(xml_path, parser)
             root = tree.getroot()
         except etree.XMLSyntaxError as e:
-            logger.error(f"Invalid XML syntax in {xml_path}: {e}")
-            raise ValueError(f"Invalid XML: {e}")
+            error_msg = f"Line {e.lineno}: {e.msg}" if e.lineno else str(e)
+            logger.error(f"Invalid XML syntax in {xml_path}: {error_msg}")
+            raise ValueError(f"Invalid XML: {error_msg}")
         except Exception as e:
             logger.error(f"Error parsing XML {xml_path}: {e}")
             raise ValueError(f"Error parsing XML: {e}")
+
+        # Log any unknown elements at root level (defensive robustness)
+        expected_root_elements = {
+            'encounterType', 'admissionDateTime', 'dischargeDateTime', 'chiefComplaint',
+            'facility', 'department', 'room', 'providers', 'vitalsHistory',
+            'diagnoses', 'orders', 'procedures', 'clinicalNotes', 'dischargeInfo'
+        }
+        self.log_unknown_elements(root, expected_root_elements)
 
         # 1. Providers
         providers = []

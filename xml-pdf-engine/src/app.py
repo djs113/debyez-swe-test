@@ -82,7 +82,8 @@ def detect_schema(content: bytes):
         return None
 
     except etree.XMLSyntaxError as e:
-        raise ValueError(f"Invalid XML syntax: {str(e)}")
+        error_msg = f"Line {e.lineno}: {e.msg}" if e.lineno else str(e)
+        raise ValueError(f"Invalid XML syntax: {error_msg}")
     except Exception as e:
         raise ValueError(f"Error parsing XML: {str(e)}")
 
@@ -98,8 +99,9 @@ def detect_schema_with_validation(content: bytes):
         parser = etree.XMLParser(resolve_entities=False, remove_blank_text=True)
         etree.fromstring(content, parser=parser)
     except etree.XMLSyntaxError as e:
-        logger.error(f"Invalid XML syntax: {e}")
-        raise ValueError(f"Invalid XML syntax: {str(e)}")
+        error_msg = f"Line {e.lineno}: {e.msg}" if e.lineno else str(e)
+        logger.error(f"Invalid XML syntax: {error_msg}")
+        raise ValueError(f"Invalid XML syntax: {error_msg}")
     except Exception as e:
         logger.error(f"Error parsing XML: {e}")
         raise ValueError(f"Error parsing XML: {str(e)}")
@@ -252,11 +254,11 @@ async def validate_file(request_id: str, schema: str):
             detail={"error": "Error validating file", "details": str(e)}
         )
 
-async def run_render_job(job_id: str, schema: str, filename: str, temp_path: str, output_path: str, template_name: str):
+async def run_render_job(job_id: str, schema: str, filename: str, temp_path: str, output_path: str, template_name: str, strategy: str = "PDFKIT"):
     """Background task to render PDF and update job status."""
     try:
         set_processing(job_id)
-        render_document(schema, temp_path, output_path, template_name)
+        await render_document(schema, temp_path, output_path, template_name, strategy=strategy)
         set_complete(job_id, output_path, filename)
     except Exception as e:
         set_failed(job_id, str(e))
@@ -296,17 +298,49 @@ async def generate_pdf(
     filename: str = Form(...),
     schema: str = Form(...),
     request_id: str = Form(...),
-    template_name: str = Form(...)
+    template_name: str = Form(...),
+    strategy: str = Form(default="PDFKIT")
 ):
     base_dir = Path.cwd()
     temp_path = str(base_dir / f"temp_{request_id}_{filename}")
     output_path = str(base_dir / f"output_{request_id}.pdf")
 
+    # Validate that XML matches the selected schema before generating
+    try:
+        temp_files = list(base_dir.glob(f"temp_{request_id}_*"))
+        if not temp_files:
+            raise HTTPException(status_code=404, detail="Uploaded file not found")
+
+        with open(temp_files[0], "rb") as f:
+            content = f.read()
+
+        registry = get_registry()
+        is_valid, reason = registry.validate_against_xsd(content, schema)
+
+        if not is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": f"XML does not match the selected {schema} schema",
+                    "validation_error": reason
+                }
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "Error validating file against schema",
+                "details": str(e)
+            }
+        )
+
     job_id = create_job()
 
     # Fire and forget: background rendering (cleanup of temp file happens inside run_render_job)
     background_tasks.add_task(
-        run_render_job, job_id, schema, filename, temp_path, output_path, template_name
+        run_render_job, job_id, schema, filename, temp_path, output_path, template_name, strategy
     )
 
     return {"job_id": job_id, "status": "PENDING"}
